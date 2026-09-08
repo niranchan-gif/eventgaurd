@@ -11,36 +11,41 @@ class CamerasScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<MockState>();
+    final activeCount = state.cameras.where((c) => !c.isEmptySlot).length;
+    final standbyCount = state.cameras.where((c) => c.isEmptySlot).length;
+
     return Container(
-      color: AppTheme.darkOlive,
+      color: AppTheme.obsidianBlack,
       child: Column(
         children: [
-          // Header
+          // Header Bar
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
             decoration: const BoxDecoration(
-              color: AppTheme.deepGreen,
-              border: Border(bottom: BorderSide(color: AppTheme.border)),
+              color: AppTheme.charcoalSurface,
+              border: Border(bottom: BorderSide(color: AppTheme.hairlineBorder)),
             ),
             child: Row(
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Camera Grid Management', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.cream)),
-                    const SizedBox(height: 2),
-                    Text('${state.cameras.length} Active PTZ & Thermal units connected', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted)),
+                    Text('Camera Grid & Hardware Management', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.titaniumWhite)),
+                    const SizedBox(height: 4),
+                    Text('$activeCount Active Hardware Sensor • $standbyCount Standby Channels Registered', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.mutedSilver)),
                   ],
                 ),
                 const Spacer(),
                 ElevatedButton.icon(
                   onPressed: () => _showAddCameraDialog(context),
-                  icon: const Icon(Icons.add_a_photo_outlined, size: 18, color: AppTheme.darkOlive),
+                  icon: const Icon(Icons.add_a_photo_outlined, size: 18, color: AppTheme.obsidianBlack),
                   label: Text('PROVISION CAMERA', style: GoogleFonts.inter(fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.orange,
-                    foregroundColor: AppTheme.darkOlive,
+                    backgroundColor: AppTheme.tacticalAmber,
+                    foregroundColor: AppTheme.obsidianBlack,
+                    elevation: 2,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ],
@@ -52,20 +57,25 @@ class CamerasScreen extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.deepGreen,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.border),
+                  color: AppTheme.charcoalSurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.hairlineBorder),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4)),
+                  ],
                 ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 850),
+                    constraints: const BoxConstraints(minWidth: 900),
                     child: DataTable(
-                      headingRowColor: MaterialStateProperty.all(AppTheme.darkOlive),
-                      headingTextStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.cream, fontSize: 13),
-                      dataTextStyle: GoogleFonts.inter(color: AppTheme.cream, fontSize: 13),
+                      headingRowColor: WidgetStateProperty.all(AppTheme.obsidianBlack),
+                      headingTextStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.titaniumWhite, fontSize: 13),
+                      dataTextStyle: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
+                      dataRowMinHeight: 56,
+                      dataRowMaxHeight: 56,
                       columns: const [
-                        DataColumn(label: Text('Unit ID')),
+                        DataColumn(label: Text('Sensor ID')),
                         DataColumn(label: Text('Deployment Location')),
                         DataColumn(label: Text('Sector Zone')),
                         DataColumn(label: Text('Signal Quality')),
@@ -73,52 +83,122 @@ class CamerasScreen extends StatelessWidget {
                         DataColumn(label: Text('Controls')),
                       ],
                       rows: state.cameras.map((c) {
-                        bool isOnline = c.status == CameraStatus.online;
+                        final isCam1 = c.id == 'CAM-001';
+                        final isOnline = isCam1 && state.isCameraOn && state.isBackendConnected;
+
                         return DataRow(
                           cells: [
-                            DataCell(Text(c.id, style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.orange))),
-                            DataCell(Text(c.location)),
-                            DataCell(Text(c.zone)),
                             DataCell(Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.wifi, size: 16, color: AppTheme.safe),
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.obsidianBlack,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: isCam1
+                                          ? (isOnline ? AppTheme.radarGreen : AppTheme.alertRed)
+                                          : AppTheme.hairlineBorder,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    isCam1 ? Icons.videocam : Icons.sensors_off_outlined,
+                                    size: 14,
+                                    color: isCam1
+                                        ? (isOnline ? AppTheme.radarGreen : AppTheme.alertRed)
+                                        : AppTheme.mutedSilver,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  isCam1 ? '${c.id} (WEBCAM)' : c.id,
+                                  style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.bold,
+                                    color: isCam1 ? AppTheme.tacticalAmber : AppTheme.mutedSilver,
+                                  ),
+                                ),
+                              ],
+                            )),
+                            DataCell(Text(
+                              isCam1 ? c.location : 'Standby / Unallocated Slot',
+                              style: GoogleFonts.inter(
+                                color: isCam1 ? AppTheme.titaniumWhite : AppTheme.mutedSilver,
+                              ),
+                            )),
+                            DataCell(Text(
+                              c.zone,
+                              style: GoogleFonts.inter(
+                                color: isCam1 ? AppTheme.titaniumWhite : AppTheme.mutedSilver,
+                              ),
+                            )),
+                            DataCell(Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isCam1 ? Icons.wifi : Icons.wifi_off,
+                                  size: 14,
+                                  color: isOnline ? AppTheme.radarGreen : AppTheme.mutedSilver,
+                                ),
                                 const SizedBox(width: 6),
-                                Text(c.signal),
+                                Text(
+                                  isCam1 ? (isOnline ? 'Direct Bus 100%' : 'Muted') : 'Disconnected',
+                                  style: GoogleFonts.inter(color: isCam1 ? AppTheme.titaniumWhite : AppTheme.mutedSilver),
+                                ),
                               ],
                             )),
                             DataCell(
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: isOnline ? AppTheme.safe.withOpacity(0.2) : AppTheme.orange.withOpacity(0.2),
+                                  color: isCam1
+                                      ? (isOnline ? AppTheme.radarGreen.withValues(alpha: 0.18) : AppTheme.alertRed.withValues(alpha: 0.18))
+                                      : AppTheme.hairlineBorder.withValues(alpha: 0.3),
                                   borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: isCam1
+                                        ? (isOnline ? AppTheme.radarGreen : AppTheme.alertRed)
+                                        : AppTheme.hairlineBorder,
+                                    width: 0.8,
+                                  ),
                                 ),
                                 child: Text(
-                                  c.status.name.toUpperCase(),
+                                  isCam1
+                                      ? (isOnline ? 'LIVE INGESTION' : 'MUTED / STANDBY')
+                                      : 'STANDBY SLOT',
                                   style: GoogleFonts.inter(
-                                    color: isOnline ? AppTheme.safe : AppTheme.orange,
+                                    color: isCam1
+                                        ? (isOnline ? AppTheme.radarGreen : AppTheme.alertRed)
+                                        : AppTheme.mutedSilver,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 11,
+                                    fontSize: 10,
+                                    letterSpacing: 0.3,
                                   ),
                                 ),
                               ),
                             ),
-                            DataCell(Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit_outlined, color: AppTheme.cream, size: 18),
-                                  splashRadius: 16,
-                                  onPressed: () {},
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline, color: AppTheme.orange, size: 18),
-                                  splashRadius: 16,
-                                  onPressed: () => context.read<MockState>().deleteCamera(c.id),
-                                ),
-                              ],
-                            )),
+                            DataCell(
+                              isCam1
+                                  ? OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: state.isCameraOn ? AppTheme.alertRed : AppTheme.radarGreen,
+                                        side: BorderSide(color: state.isCameraOn ? AppTheme.alertRed : AppTheme.radarGreen),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                      onPressed: () => state.toggleCameraPower(),
+                                      icon: Icon(state.isCameraOn ? Icons.power_settings_new : Icons.videocam, size: 14),
+                                      label: Text(
+                                        state.isCameraOn ? 'MUTE' : 'ACTIVATE',
+                                        style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold),
+                                      ),
+                                    )
+                                  : Text(
+                                      'READY',
+                                      style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 10, fontWeight: FontWeight.bold),
+                                    ),
+                            ),
                           ],
                         );
                       }).toList(),
@@ -142,29 +222,46 @@ class CamerasScreen extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppTheme.deepGreen,
-          title: Text('Provision New Camera Unit', style: GoogleFonts.inter(color: AppTheme.cream, fontWeight: FontWeight.bold)),
+          backgroundColor: AppTheme.charcoalSurface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AppTheme.hairlineBorder, width: 1.5),
+          ),
+          title: Row(
+            children: [
+              const Icon(Icons.add_a_photo_outlined, color: AppTheme.tacticalAmber, size: 20),
+              const SizedBox(width: 8),
+              Text('Provision New Camera Unit', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
           content: SizedBox(
-            width: 400,
+            width: 420,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text('Camera Unit Identifier', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
                 TextField(
                   controller: idController,
-                  style: GoogleFonts.inter(color: AppTheme.cream),
-                  decoration: const InputDecoration(labelText: 'Camera Unit Identifier'),
+                  style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
+                  decoration: const InputDecoration(hintText: 'e.g. CAM-002'),
                 ),
                 const SizedBox(height: 14),
+                Text('Physical Location Coordinates', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
                 TextField(
                   controller: locController,
-                  style: GoogleFonts.inter(color: AppTheme.cream),
-                  decoration: const InputDecoration(labelText: 'Physical Location'),
+                  style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
+                  decoration: const InputDecoration(hintText: 'e.g. Checkpoint Alpha'),
                 ),
                 const SizedBox(height: 14),
+                Text('Security Sector / Tactical Zone', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
                 TextField(
                   controller: zoneController,
-                  style: GoogleFonts.inter(color: AppTheme.cream),
-                  decoration: const InputDecoration(labelText: 'Security Sector / Zone'),
+                  style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
+                  decoration: const InputDecoration(hintText: 'e.g. Sector 02 East'),
                 ),
               ],
             ),
@@ -172,19 +269,21 @@ class CamerasScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('CANCEL', style: GoogleFonts.inter(color: AppTheme.textMuted)),
+              child: Text('CANCEL', style: GoogleFonts.inter(color: AppTheme.mutedSilver)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.orange,
-                foregroundColor: AppTheme.darkOlive,
+                backgroundColor: AppTheme.tacticalAmber,
+                foregroundColor: AppTheme.obsidianBlack,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
               onPressed: () {
                 final newCam = Camera(
-                  id: idController.text,
+                  id: idController.text.trim(),
                   name: 'Surveillance Node',
-                  location: locController.text,
-                  zone: zoneController.text,
+                  location: locController.text.trim(),
+                  zone: zoneController.text.trim(),
                   status: CameraStatus.online,
                   signal: 'Optimal 98%',
                   lastActive: DateTime.now(),

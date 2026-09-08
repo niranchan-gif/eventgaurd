@@ -23,51 +23,63 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.darkOlive, // 1st priority: #2E2910
+      backgroundColor: AppTheme.obsidianBlack,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: AppTheme.deepGreen, // 2nd priority: #2C5745
+                color: AppTheme.charcoalSurface,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppTheme.orange, width: 2), // 4th priority: #EB7D00
+                border: Border.all(color: AppTheme.tacticalAmber, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.tacticalAmber.withValues(alpha: 0.25),
+                    blurRadius: 28,
+                    spreadRadius: 4,
+                  ),
+                ],
               ),
-              child: const Icon(Icons.security, size: 70, color: AppTheme.orange),
+              child: const Icon(Icons.security, size: 64, color: AppTheme.tacticalAmber),
             ),
             const SizedBox(height: 28),
             Text(
-              'BorderGuard AI',
-              style: GoogleFonts.inter(fontSize: 34, fontWeight: FontWeight.w800, color: AppTheme.cream, letterSpacing: 1.2), // 3rd: #EBE3A7
+              'BORDERGUARD AI',
+              style: GoogleFonts.inter(
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.titaniumWhite,
+                letterSpacing: 1.5,
+              ),
             ),
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
               decoration: BoxDecoration(
-                color: AppTheme.deepGreen,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppTheme.border),
+                color: AppTheme.charcoalSurface,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppTheme.hairlineBorder),
               ),
               child: Text(
-                'TACTICAL PERIMETER DEFENSE & INTELLIGENCE',
-                style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.orange, letterSpacing: 0.8),
+                'TACTICAL PERIMETER DEFENSE & INTELLIGENCE SUITE',
+                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, letterSpacing: 1.0),
               ),
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 48),
             const SizedBox(
-              width: 32,
-              height: 32,
+              width: 30,
+              height: 30,
               child: CircularProgressIndicator(
-                color: AppTheme.orange,
-                strokeWidth: 3,
+                color: AppTheme.tacticalAmber,
+                strokeWidth: 2.5,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             Text(
-              'INITIALIZING DEFENSE GRID & TELEMETRY...',
-              style: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 11, letterSpacing: 0.8, fontWeight: FontWeight.w600),
+              'INITIALIZING DEFENSE SENSOR GRID & AI PIPELINES...',
+              style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11, letterSpacing: 0.8, fontWeight: FontWeight.w600),
             ),
           ],
         ),

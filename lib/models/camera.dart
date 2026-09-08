@@ -6,11 +6,12 @@ class Camera {
   final String name;
   final String location;
   final String zone;
-  final CameraStatus status;
+  CameraStatus status;
   final String signal;
-  final DateTime lastActive;
+  DateTime lastActive;
   final Map<String, DetectionMode> detectionModes;
-  final String currentDetection;
+  String currentDetection;
+  final bool isEmptySlot;
 
   Camera({
     required this.id,
@@ -22,5 +23,6 @@ class Camera {
     required this.lastActive,
     required this.detectionModes,
     this.currentDetection = "No Threat",
+    this.isEmptySlot = false,
   });
 }

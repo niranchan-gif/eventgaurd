@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_theme.dart';
+import '../mock/mock_state.dart';
+import '../models/user_model.dart';
+import '../models/alert.dart';
 
 class TopBar extends StatelessWidget {
   final String title;
@@ -8,6 +12,10 @@ class TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<MockState>();
+    final user = state.currentUser ?? UserModel.commanderAlpha;
+    final activeAlerts = state.alerts.where((a) => a.status == AlertStatus.active).length;
+
     return Container(
       height: 64,
       decoration: const BoxDecoration(
@@ -84,20 +92,101 @@ class TopBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              _TopBarIconButton(icon: Icons.notifications_outlined, badgeCount: 2),
-              const SizedBox(width: 4),
-              _TopBarIconButton(icon: Icons.tune_rounded),
+              _TopBarIconButton(
+                icon: Icons.notifications_outlined,
+                badgeCount: activeAlerts,
+                tooltip: '$activeAlerts Active Breaches',
+              ),
               const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.tacticalAmber, width: 1.5),
+              // User profile button with dropdown
+              PopupMenuButton<String>(
+                color: AppTheme.charcoalSurface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: const BorderSide(color: AppTheme.hairlineBorder),
                 ),
-                child: const CircleAvatar(
-                  radius: 14,
-                  backgroundColor: AppTheme.charcoalSurface,
-                  child: Icon(Icons.person, size: 16, color: AppTheme.titaniumWhite),
+                offset: const Offset(0, 48),
+                onSelected: (value) {
+                  if (value == 'logout') {
+                    state.logout();
+                    Navigator.pushReplacementNamed(context, '/login');
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    enabled: false,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              user.name,
+                              style: GoogleFonts.inter(
+                                color: AppTheme.titaniumWhite,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            if (user.provider == AuthProvider.google) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF4285F4).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                child: Text('GOOGLE', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: const Color(0xFF4285F4))),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(user.email, style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11)),
+                        const SizedBox(height: 4),
+                        Text(user.clearanceLevel, style: GoogleFonts.inter(color: AppTheme.tacticalAmber, fontSize: 9, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.logout, color: AppTheme.alertRed, size: 16),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Sign Out Station',
+                          style: GoogleFonts.inter(color: AppTheme.alertRed, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: user.provider == AuthProvider.google ? const Color(0xFF4285F4) : AppTheme.tacticalAmber,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 14,
+                      backgroundColor: AppTheme.charcoalElevated,
+                      child: Text(
+                        user.initials,
+                        style: GoogleFonts.inter(
+                          color: user.provider == AuthProvider.google ? const Color(0xFF4285F4) : AppTheme.tacticalAmber,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -161,7 +250,7 @@ class _PulsingRadarDotState extends State<PulsingRadarDot> with SingleTickerProv
                   height: 8,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppTheme.radarGreen.withOpacity(_opacityAnimation.value),
+                    color: AppTheme.radarGreen.withValues(alpha: _opacityAnimation.value),
                   ),
                 ),
               );
@@ -184,8 +273,9 @@ class _PulsingRadarDotState extends State<PulsingRadarDot> with SingleTickerProv
 class _TopBarIconButton extends StatefulWidget {
   final IconData icon;
   final int badgeCount;
+  final String? tooltip;
 
-  const _TopBarIconButton({required this.icon, this.badgeCount = 0});
+  const _TopBarIconButton({required this.icon, this.badgeCount = 0, this.tooltip});
 
   @override
   State<_TopBarIconButton> createState() => _TopBarIconButtonState();
@@ -196,7 +286,7 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
+    Widget button = MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
@@ -239,6 +329,14 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
         ),
       ),
     );
+
+    if (widget.tooltip != null) {
+      return Tooltip(
+        message: widget.tooltip!,
+        child: button,
+      );
+    }
+    return button;
   }
 }
 
@@ -250,6 +348,9 @@ class Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<MockState>();
+    final user = state.currentUser ?? UserModel.commanderAlpha;
+
     return Container(
       width: 250,
       decoration: const BoxDecoration(
@@ -266,20 +367,20 @@ class Sidebar extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppTheme.charcoalSurface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.tacticalAmber.withOpacity(0.8), width: 1.4),
+                    border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.8), width: 1.4),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.tacticalAmber.withOpacity(0.15),
+                        color: AppTheme.tacticalAmber.withValues(alpha: 0.15),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.security, size: 20, color: AppTheme.tacticalAmber),
+                  child: const Icon(Icons.shield, size: 20, color: AppTheme.tacticalAmber),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -287,12 +388,12 @@ class Sidebar extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'BorderGuard',
-                        style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.titaniumWhite, letterSpacing: 0.2),
+                        'BorderGuard AI',
+                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.titaniumWhite, letterSpacing: 0.2),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        'AUTONOMOUS DEFENSE',
+                        'C2 DEFENSE GRID',
                         style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, letterSpacing: 0.8),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -302,21 +403,21 @@ class Sidebar extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           const Divider(color: AppTheme.hairlineBorder, height: 1),
           // Nav items list
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 10),
               children: [
-                _SidebarNavItem(index: 0, title: 'Dashboard', icon: Icons.dashboard_outlined, isSelected: selectedIndex == 0, onTap: () => onItemSelected(0)),
-                _SidebarNavItem(index: 1, title: 'Live Surveillance', icon: Icons.videocam_outlined, isSelected: selectedIndex == 1, onTap: () => onItemSelected(1)),
-                _SidebarNavItem(index: 2, title: 'Alerts & Breaches', icon: Icons.warning_amber_rounded, isSelected: selectedIndex == 2, onTap: () => onItemSelected(2)),
-                _SidebarNavItem(index: 3, title: 'Tactical Map', icon: Icons.map_outlined, isSelected: selectedIndex == 3, onTap: () => onItemSelected(3)),
-                _SidebarNavItem(index: 4, title: 'Incident Register', icon: Icons.shield_outlined, isSelected: selectedIndex == 4, onTap: () => onItemSelected(4)),
-                _SidebarNavItem(index: 5, title: 'Telemetry & Analytics', icon: Icons.analytics_outlined, isSelected: selectedIndex == 5, onTap: () => onItemSelected(5)),
+                _SidebarNavItem(index: 0, title: 'Dashboard Overview', icon: Icons.dashboard_outlined, isSelected: selectedIndex == 0, onTap: () => onItemSelected(0)),
+                _SidebarNavItem(index: 1, title: 'Live Surveillance Grid', icon: Icons.videocam_outlined, isSelected: selectedIndex == 1, onTap: () => onItemSelected(1)),
+                _SidebarNavItem(index: 2, title: 'Threats & Alert Feed', icon: Icons.warning_amber_rounded, isSelected: selectedIndex == 2, onTap: () => onItemSelected(2)),
+                _SidebarNavItem(index: 3, title: 'Tactical Perimeter Map', icon: Icons.map_outlined, isSelected: selectedIndex == 3, onTap: () => onItemSelected(3)),
+                _SidebarNavItem(index: 4, title: 'Incident Log & Dispatch', icon: Icons.assignment_outlined, isSelected: selectedIndex == 4, onTap: () => onItemSelected(4)),
+                _SidebarNavItem(index: 5, title: 'Intelligence & Analytics', icon: Icons.analytics_outlined, isSelected: selectedIndex == 5, onTap: () => onItemSelected(5)),
                 _SidebarNavItem(index: 6, title: 'Sensor Grid Nodes', icon: Icons.camera_alt_outlined, isSelected: selectedIndex == 6, onTap: () => onItemSelected(6)),
-                _SidebarNavItem(index: 7, title: 'Station Preferences', icon: Icons.settings_outlined, isSelected: selectedIndex == 7, onTap: () => onItemSelected(7)),
+                _SidebarNavItem(index: 7, title: 'System Configuration', icon: Icons.settings_outlined, isSelected: selectedIndex == 7, onTap: () => onItemSelected(7)),
               ],
             ),
           ),
@@ -329,23 +430,46 @@ class Sidebar extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 16,
-                  backgroundColor: AppTheme.tacticalAmber,
-                  child: const Text('AK', style: TextStyle(color: AppTheme.obsidianBlack, fontSize: 11, fontWeight: FontWeight.w900)),
+                  backgroundColor: user.provider == AuthProvider.google ? const Color(0xFF4285F4) : AppTheme.tacticalAmber,
+                  child: Text(
+                    user.initials,
+                    style: const TextStyle(color: AppTheme.obsidianBlack, fontSize: 11, fontWeight: FontWeight.w900),
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Arun Kumar', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontWeight: FontWeight.w700, fontSize: 12), overflow: TextOverflow.ellipsis),
-                      Text('Surveillance Commander', style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 10), overflow: TextOverflow.ellipsis),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              user.name,
+                              style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontWeight: FontWeight.w700, fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (user.provider == AuthProvider.google) ...[
+                            const SizedBox(width: 4),
+                            const Icon(Icons.verified, size: 12, color: Color(0xFF4285F4)),
+                          ],
+                        ],
+                      ),
+                      Text(
+                        user.role,
+                        style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 10),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ),
                 ),
                 IconButton(
+                  tooltip: 'Sign Out Station',
                   icon: const Icon(Icons.logout, size: 16, color: AppTheme.mutedSilver),
-                  splashRadius: 14,
+                  splashRadius: 16,
                   onPressed: () {
+                    state.logout();
                     Navigator.pushReplacementNamed(context, '/login');
                   },
                 ),
@@ -382,6 +506,8 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
 
   @override
   Widget build(BuildContext context) {
+    final isSelected = widget.isSelected;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       child: MouseRegion(
@@ -391,59 +517,54 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
         child: GestureDetector(
           onTap: widget.onTap,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
+            duration: const Duration(milliseconds: 160),
             curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
             decoration: BoxDecoration(
-              color: widget.isSelected
-                  ? AppTheme.charcoalSurface
-                  : (_isHovered ? AppTheme.charcoalElevated.withOpacity(0.6) : Colors.transparent),
-              borderRadius: BorderRadius.circular(6),
+              color: isSelected
+                  ? AppTheme.charcoalElevated
+                  : (_isHovered ? AppTheme.charcoalSurface : Colors.transparent),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: widget.isSelected
-                    ? AppTheme.tacticalAmber.withOpacity(0.8)
+                color: isSelected
+                    ? AppTheme.tacticalAmber.withValues(alpha: 0.45)
                     : (_isHovered ? AppTheme.hairlineBorder : Colors.transparent),
-                width: 1.2,
+                width: 1,
               ),
             ),
             child: Row(
               children: [
-                AnimatedScale(
-                  scale: widget.isSelected || _isHovered ? 1.08 : 1.0,
-                  duration: const Duration(milliseconds: 180),
-                  child: Icon(
-                    widget.icon,
-                    color: widget.isSelected
-                        ? AppTheme.tacticalAmber
-                        : (_isHovered ? AppTheme.titaniumWhite : AppTheme.mutedSilver),
-                    size: 18,
+                // Accent indicator bar
+                Container(
+                  width: 3,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppTheme.tacticalAmber : Colors.transparent,
+                    borderRadius: BorderRadius.circular(2),
                   ),
+                ),
+                const SizedBox(width: 10),
+                Icon(
+                  widget.icon,
+                  color: isSelected
+                      ? AppTheme.tacticalAmber
+                      : (_isHovered ? AppTheme.titaniumWhite : AppTheme.mutedSilver),
+                  size: 18,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 180),
+                  child: Text(
+                    widget.title,
                     style: GoogleFonts.inter(
-                      color: widget.isSelected
+                      color: isSelected
                           ? AppTheme.titaniumWhite
                           : (_isHovered ? AppTheme.titaniumWhite : AppTheme.mutedSilver),
-                      fontWeight: widget.isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                       fontSize: 13,
                     ),
                     overflow: TextOverflow.ellipsis,
-                    child: Text(widget.title),
                   ),
                 ),
-                if (widget.isSelected)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 5,
-                    height: 5,
-                    decoration: const BoxDecoration(
-                      color: AppTheme.tacticalAmber,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
               ],
             ),
           ),

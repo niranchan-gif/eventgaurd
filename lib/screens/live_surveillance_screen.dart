@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../mock/mock_state.dart';
 import '../theme/app_theme.dart';
 import '../models/camera.dart';
+import '../widgets/live_camera_feed.dart';
 
 class LiveSurveillanceScreen extends StatefulWidget {
   const LiveSurveillanceScreen({Key? key}) : super(key: key);
@@ -14,59 +15,100 @@ class LiveSurveillanceScreen extends StatefulWidget {
 
 class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
   String _selectedZone = 'All Zones';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<MockState>();
-    final cameras = state.cameras;
+    final query = _searchController.text.trim().toLowerCase();
+
+    final filteredCameras = state.cameras.where((c) {
+      if (_selectedZone != 'All Zones' && !c.zone.toLowerCase().contains(_selectedZone.toLowerCase())) {
+        return false;
+      }
+      if (query.isNotEmpty) {
+        final matchId = c.id.toLowerCase().contains(query);
+        final matchName = c.name.toLowerCase().contains(query);
+        final matchLoc = c.location.toLowerCase().contains(query);
+        final matchZone = c.zone.toLowerCase().contains(query);
+        return matchId || matchName || matchLoc || matchZone;
+      }
+      return true;
+    }).toList();
 
     return Container(
-      color: AppTheme.darkOlive,
+      color: AppTheme.obsidianBlack,
       child: Column(
         children: [
           // Filter & Search Bar
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: const BoxDecoration(
-              color: AppTheme.deepGreen,
-              border: Border(bottom: BorderSide(color: AppTheme.border)),
+              color: AppTheme.charcoalSurface,
+              border: Border(bottom: BorderSide(color: AppTheme.hairlineBorder)),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: SizedBox(
-                    height: 40,
+                    height: 42,
                     child: TextField(
-                      style: GoogleFonts.inter(color: AppTheme.cream, fontSize: 13),
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Search camera node ID, sector, coordinates...',
-                        hintStyle: GoogleFonts.inter(color: AppTheme.textDisabled, fontSize: 13),
-                        prefixIcon: const Icon(Icons.search, color: AppTheme.cream, size: 18),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        hintStyle: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 13),
+                        prefixIcon: const Icon(Icons.search, color: AppTheme.tacticalAmber, size: 18),
+                        suffixIcon: query.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 16, color: AppTheme.mutedSilver),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {});
+                                },
+                              )
+                            : null,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         filled: true,
-                        fillColor: AppTheme.darkOlive,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: AppTheme.border)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: AppTheme.border)),
+                        fillColor: AppTheme.obsidianBlack,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.hairlineBorder)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.hairlineBorder)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.tacticalAmber, width: 1.5)),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: AppTheme.darkOlive,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppTheme.border),
+                    color: AppTheme.obsidianBlack,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.hairlineBorder),
                   ),
-                  height: 40,
+                  height: 42,
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: _selectedZone,
-                      dropdownColor: AppTheme.darkOlive,
-                      style: GoogleFonts.inter(color: AppTheme.cream, fontSize: 13, fontWeight: FontWeight.bold),
-                      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.orange),
-                      items: ['All Zones', 'North Sector', 'East Ridge', 'West Basin'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                      dropdownColor: AppTheme.charcoalElevated,
+                      style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13, fontWeight: FontWeight.bold),
+                      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.tacticalAmber),
+                      items: [
+                        'All Zones',
+                        'Sector 01',
+                        'Sector 02',
+                        'Sector 03',
+                        'Sector 04',
+                        'Sector 05',
+                        'Sector 06',
+                      ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                       onChanged: (v) {
                         if (v != null) setState(() => _selectedZone = v);
                       },
@@ -74,239 +116,535 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                IconButton(
-                  icon: const Icon(Icons.grid_view, color: AppTheme.orange),
-                  splashRadius: 18,
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: const Icon(Icons.fullscreen, color: AppTheme.cream),
-                  splashRadius: 18,
-                  onPressed: () {},
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: state.isCameraOn ? AppTheme.alertRed.withValues(alpha: 0.18) : AppTheme.radarGreen.withValues(alpha: 0.2),
+                    foregroundColor: state.isCameraOn ? AppTheme.alertRed : AppTheme.radarGreen,
+                    side: BorderSide(color: state.isCameraOn ? AppTheme.alertRed : AppTheme.radarGreen),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () => state.toggleCameraPower(),
+                  icon: Icon(state.isCameraOn ? Icons.power_settings_new : Icons.videocam, size: 16),
+                  label: Text(
+                    state.isCameraOn ? 'MUTE CAM 01' : 'ACTIVATE CAM 01',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.5),
+                  ),
                 ),
               ],
             ),
           ),
-          // CCTV Grid
+          // CCTV Grid with Responsive Columns
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(20),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 16 / 10,
-              ),
-              itemCount: cameras.length,
-              itemBuilder: (context, index) {
-                return _buildCCTVFeed(context, cameras[index]);
-              },
-            ),
+            child: filteredCameras.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: AppTheme.charcoalSurface,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.hairlineBorder),
+                          ),
+                          child: const Icon(Icons.videocam_off_outlined, size: 40, color: AppTheme.mutedSilver),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No Camera Nodes Found in $_selectedZone',
+                          style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Try clearing your search query or selecting "All Zones".',
+                          style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedZone = 'All Zones';
+                              _searchController.clear();
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.tacticalAmber,
+                            foregroundColor: AppTheme.obsidianBlack,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          child: Text('RESET FILTERS', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11)),
+                        ),
+                      ],
+                    ),
+                  )
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      int cols = 3;
+                      if (constraints.maxWidth < 800) {
+                        cols = 1;
+                      } else if (constraints.maxWidth < 1250) {
+                        cols = 2;
+                      }
+
+                      return GridView.builder(
+                        padding: const EdgeInsets.all(20),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: cols,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 16 / 9.8,
+                        ),
+                        itemCount: filteredCameras.length,
+                        itemBuilder: (context, index) {
+                          return _TacticalCameraCard(
+                            camera: filteredCameras[index],
+                            onTap: () => _showCameraModal(context, filteredCameras[index]),
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCCTVFeed(BuildContext context, Camera camera) {
-    bool isOnline = camera.status == CameraStatus.online;
-    bool hasThreat = camera.currentDetection != 'No Threat' && camera.currentDetection != 'Offline';
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: () => _showCameraModal(context, camera),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.darkOlive,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: hasThreat ? AppTheme.orange : AppTheme.border,
-            width: hasThreat ? 2 : 1,
-          ),
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Center(
-              child: Icon(
-                Icons.videocam_outlined,
-                size: 54,
-                color: isOnline ? AppTheme.cream.withOpacity(0.2) : AppTheme.cream.withOpacity(0.08),
-              ),
-            ),
-            // Live Status Tag
-            Positioned(
-              top: 10,
-              left: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isOnline ? (hasThreat ? AppTheme.orange : AppTheme.safe) : Colors.black87,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      isOnline ? (hasThreat ? 'ALERT' : 'LIVE') : 'OFFLINE',
-                      style: GoogleFonts.inter(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: hasThreat ? AppTheme.darkOlive : Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Node ID
-            Positioned(
-              top: 10,
-              right: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppTheme.borderSubtle),
-                ),
-                child: Text(
-                  camera.id,
-                  style: GoogleFonts.inter(color: AppTheme.cream, fontWeight: FontWeight.bold, fontSize: 11),
-                ),
-              ),
-            ),
-            // Bottom Info Bar
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: const BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(7), bottomRight: Radius.circular(7)),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            camera.location,
-                            style: GoogleFonts.inter(color: AppTheme.cream, fontSize: 11, fontWeight: FontWeight.w600),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            camera.currentDetection,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              color: hasThreat ? AppTheme.orange : AppTheme.safe,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.zoom_in, color: AppTheme.cream, size: 18),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
   void _showCameraModal(BuildContext context, Camera camera) {
+    final isCam1 = camera.id == 'CAM-001';
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.deepGreen,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppTheme.border)),
-        title: Text('Surveillance Feed Detail: ${camera.id}', style: GoogleFonts.inter(color: AppTheme.cream, fontWeight: FontWeight.bold)),
-        content: SizedBox(
-          width: 750,
-          height: 420,
-          child: Row(
-            children: [
-              Expanded(
-                flex: 5,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.darkOlive,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.border),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.videocam_outlined, size: 80, color: AppTheme.cream),
-                  ),
-                ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final currentState = context.watch<MockState>();
+            final currentMode = currentState.activeAiMode;
+
+            return AlertDialog(
+              backgroundColor: AppTheme.charcoalSurface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: AppTheme.hairlineBorder, width: 1.5),
               ),
-              const SizedBox(width: 20),
-              Expanded(
-                flex: 4,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('CAMERA SPECIFICATIONS', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.orange, fontSize: 12)),
-                    const SizedBox(height: 12),
-                    _buildModalRow('Location', camera.location),
-                    _buildModalRow('Sector Zone', camera.zone),
-                    _buildModalRow('Signal Strength', camera.signal),
-                    _buildModalRow('Status', camera.status.name.toUpperCase()),
-                    const Divider(color: AppTheme.border, height: 24),
-                    Text('ACTIVE AI DETECTION CHANNELS', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.orange, fontSize: 12)),
-                    const SizedBox(height: 12),
-                    ...camera.detectionModes.entries.map((e) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6.0),
+              titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+              title: Row(
+                children: [
+                  const Icon(Icons.sensors, color: AppTheme.tacticalAmber, size: 22),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Surveillance Feed Inspector: ${camera.id}',
+                    style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontWeight: FontWeight.w800, fontSize: 17),
+                  ),
+                  const Spacer(),
+                  if (isCam1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: currentState.isBackendConnected ? AppTheme.radarGreen.withValues(alpha: 0.18) : AppTheme.alertRed.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: currentState.isBackendConnected ? AppTheme.radarGreen : AppTheme.alertRed),
+                      ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(e.key, style: GoogleFonts.inter(color: AppTheme.cream, fontSize: 12)),
-                          Text('ACTIVE', style: GoogleFonts.inter(color: AppTheme.safe, fontWeight: FontWeight.bold, fontSize: 11)),
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: currentState.isBackendConnected ? AppTheme.radarGreen : AppTheme.alertRed,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            currentState.isBackendConnected ? 'WEBCAM ACTIVE • ${currentState.cam1Fps.toStringAsFixed(1)} FPS' : 'BACKEND OFFLINE',
+                            style: GoogleFonts.inter(
+                              color: currentState.isBackendConnected ? AppTheme.radarGreen : AppTheme.alertRed,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
                         ],
                       ),
-                    )),
+                    ),
+                ],
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              content: SizedBox(
+                width: 860,
+                height: 480,
+                child: Row(
+                  children: [
+                    // Video Feed Viewport
+                    Expanded(
+                      flex: 5,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.obsidianBlack,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppTheme.hairlineBorder),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: LiveCameraFeed(camera: camera, isModal: true),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    // Controls & Telemetry
+                    Expanded(
+                      flex: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.obsidianBlack,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppTheme.hairlineBorder),
+                        ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (isCam1) ...[
+                                Text('AI DETECTION ENGINE MODE', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, fontSize: 11, letterSpacing: 0.6)),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: [
+                                    _buildModeButton(context, 'ALL ENGINES', 'all', currentMode),
+                                    _buildModeButton(context, 'OBJECTS (YOLO)', 'detection', currentMode),
+                                    _buildModeButton(context, 'VIRTUAL FENCE', 'fence', currentMode),
+                                    _buildModeButton(context, 'FACE DETECT', 'face', currentMode),
+                                    _buildModeButton(context, 'ANPR (PLATES)', 'anpr', currentMode),
+                                  ],
+                                ),
+                                const Divider(color: AppTheme.hairlineBorder, height: 24),
+                                Text('LIVE AI INFERENCE TELEMETRY', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, fontSize: 11, letterSpacing: 0.6)),
+                                const SizedBox(height: 10),
+                                _buildModalRow('Persons Tracked', '${currentState.cam1Counts['person'] ?? 0}'),
+                                _buildModalRow('Vehicles Tracked', '${currentState.cam1Counts['vehicle'] ?? 0}'),
+                                _buildModalRow('Animals Tracked', '${currentState.cam1Counts['animal'] ?? 0}'),
+                                _buildModalRow('Faces Tracked', '${currentState.cam1Counts['face'] ?? 0}'),
+                                _buildModalRow(
+                                  'Perimeter Breach',
+                                  currentState.intrusionDetected ? 'CRITICAL ALERT' : 'SECURE (CLEAR)',
+                                  isAlert: currentState.intrusionDetected,
+                                ),
+                                const Divider(color: AppTheme.hairlineBorder, height: 24),
+                              ],
+                              Text('HARDWARE SPECIFICATIONS', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, fontSize: 11, letterSpacing: 0.6)),
+                              const SizedBox(height: 10),
+                              _buildModalRow('Sensor Location', camera.location),
+                              _buildModalRow('Tactical Sector', camera.zone),
+                              _buildModalRow('Signal Telemetry', camera.signal),
+                              _buildModalRow('Operational Status', camera.status.name.toUpperCase()),
+                              _buildModalRow('Active Threat State', camera.currentDetection),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
+              actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.tacticalAmber,
+                    foregroundColor: AppTheme.obsidianBlack,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('CLOSE INSPECTOR', style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildModeButton(BuildContext context, String label, String modeKey, String currentMode) {
+    final bool isSelected = currentMode == modeKey;
+    return InkWell(
+      onTap: () {
+        context.read<MockState>().setAiMode(modeKey);
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.tacticalAmber : AppTheme.charcoalSurface,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isSelected ? AppTheme.tacticalAmber : AppTheme.hairlineBorder,
           ),
         ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.orange,
-              foregroundColor: AppTheme.darkOlive,
-            ),
-            onPressed: () => Navigator.pop(context),
-            child: Text('CLOSE INSPECTOR', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            color: isSelected ? AppTheme.obsidianBlack : AppTheme.titaniumWhite,
+            fontWeight: FontWeight.bold,
+            fontSize: 10,
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildModalRow(String label, String value) {
+  Widget _buildModalRow(String label, String value, {bool isAlert = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 12)),
-          Text(value, style: GoogleFonts.inter(color: AppTheme.cream, fontWeight: FontWeight.w600, fontSize: 12)),
+          Text(label, style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12)),
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              color: isAlert ? AppTheme.alertRed : AppTheme.titaniumWhite,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _TacticalCameraCard extends StatefulWidget {
+  final Camera camera;
+  final VoidCallback onTap;
+
+  const _TacticalCameraCard({Key? key, required this.camera, required this.onTap}) : super(key: key);
+
+  @override
+  State<_TacticalCameraCard> createState() => _TacticalCameraCardState();
+}
+
+class _TacticalCameraCardState extends State<_TacticalCameraCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final camera = widget.camera;
+    final bool hasThreat = camera.currentDetection != 'No Threat' && camera.currentDetection != 'Offline';
+    final bool isOnline = camera.status == CameraStatus.online;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedScale(
+        scale: _isHovered ? 1.015 : 1.0,
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            decoration: BoxDecoration(
+              color: AppTheme.charcoalSurface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: hasThreat
+                    ? AppTheme.alertRed
+                    : (_isHovered ? AppTheme.tacticalAmber : AppTheme.hairlineBorder),
+                width: hasThreat || _isHovered ? 1.5 : 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: hasThreat
+                      ? AppTheme.alertRed.withValues(alpha: 0.25)
+                      : (_isHovered ? AppTheme.tacticalAmber.withValues(alpha: 0.15) : Colors.black45),
+                  blurRadius: _isHovered ? 16 : 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Live camera feed or standby feed
+                LiveCameraFeed(camera: camera),
+
+                // Top Floating Badges
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  right: 10,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Node ID & Sector badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.obsidianBlack.withValues(alpha: 0.88),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppTheme.hairlineBorder),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              camera.id,
+                              style: GoogleFonts.inter(
+                                color: AppTheme.tacticalAmber,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '• ${camera.zone}',
+                              style: GoogleFonts.inter(
+                                color: AppTheme.mutedSilver,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Status Pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.obsidianBlack.withValues(alpha: 0.88),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: isOnline ? AppTheme.radarGreen : AppTheme.mutedSilver.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: isOnline ? AppTheme.radarGreen : AppTheme.mutedSilver,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              isOnline ? 'ONLINE' : 'STANDBY',
+                              style: GoogleFonts.inter(
+                                color: isOnline ? AppTheme.radarGreen : AppTheme.mutedSilver,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Bottom Floating Info Banner
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          AppTheme.obsidianBlack.withValues(alpha: 0.85),
+                          AppTheme.obsidianBlack.withValues(alpha: 0.96),
+                        ],
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                camera.location,
+                                style: GoogleFonts.inter(
+                                  color: AppTheme.titaniumWhite,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: hasThreat
+                                          ? AppTheme.alertRed.withValues(alpha: 0.2)
+                                          : AppTheme.radarGreen.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: hasThreat ? AppTheme.alertRed : AppTheme.radarGreen,
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      camera.currentDetection.toUpperCase(),
+                                      style: GoogleFonts.inter(
+                                        color: hasThreat ? AppTheme.alertRed : AppTheme.radarGreen,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    camera.signal,
+                                    style: GoogleFonts.inter(
+                                      color: AppTheme.mutedSilver,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.charcoalSurface.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppTheme.hairlineBorder),
+                          ),
+                          child: const Icon(Icons.fullscreen, color: AppTheme.tacticalAmber, size: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
