@@ -96,6 +96,20 @@ class _AlertsScreenState extends State<AlertsScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(width: 14),
+                ElevatedButton.icon(
+                  onPressed: () => _showDeployDialog(context, state),
+                  icon: const Icon(Icons.send_rounded, size: 15, color: AppTheme.obsidianBlack),
+                  label: Text(
+                    'DISPATCH QRT',
+                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: AppTheme.obsidianBlack, letterSpacing: 0.5),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.tacticalAmber,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
               ],
             ),
           ),
@@ -236,6 +250,102 @@ class _AlertsScreenState extends State<AlertsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showDeployDialog(BuildContext context, MockState state) {
+    String selectedSector = 'Sector 01 (Command Post)';
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          backgroundColor: AppTheme.charcoalSurface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AppTheme.hairlineBorder, width: 1.5),
+          ),
+          title: Row(
+            children: [
+              const Icon(Icons.send_rounded, color: AppTheme.tacticalAmber, size: 22),
+              const SizedBox(width: 10),
+              Text(
+                'Dispatch Quick Reaction Team',
+                style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Authorize tactical patrol deployment to respond to active sector incursions.',
+                style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              Text('Target Sector', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: AppTheme.obsidianBlack,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.hairlineBorder),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: selectedSector,
+                    isExpanded: true,
+                    dropdownColor: AppTheme.charcoalElevated,
+                    style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
+                    items: const [
+                      DropdownMenuItem(value: 'Sector 01 (Command Post)', child: Text('Sector 01 (Command Post)')),
+                      DropdownMenuItem(value: 'Sector 02 (Eastern Ridge)', child: Text('Sector 02 (Eastern Ridge)')),
+                      DropdownMenuItem(value: 'Sector 03 (Northern Pass)', child: Text('Sector 03 (Northern Pass)')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        selectedSector = val;
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text('CANCEL', style: GoogleFonts.inter(color: AppTheme.mutedSilver)),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                state.dispatchPatrol(
+                  sector: selectedSector,
+                  threatType: 'QRT Rapid Incursion Response',
+                );
+                Navigator.pop(dialogCtx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: AppTheme.radarGreen, size: 18),
+                        const SizedBox(width: 8),
+                        Text('QRT Patrol dispatched to $selectedSector.', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    backgroundColor: AppTheme.charcoalElevated,
+                  ),
+                );
+              },
+              icon: const Icon(Icons.send, size: 14, color: AppTheme.obsidianBlack),
+              label: Text('AUTHORIZE DISPATCH', style: GoogleFonts.inter(color: AppTheme.obsidianBlack, fontWeight: FontWeight.w900)),
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.tacticalAmber),
+            ),
+          ],
+        );
+      },
     );
   }
 }

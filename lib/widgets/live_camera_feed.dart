@@ -23,16 +23,24 @@ class LiveCameraFeed extends StatefulWidget {
 }
 
 class _LiveCameraFeedState extends State<LiveCameraFeed> {
-  Timer? _streamTimer;
   Uint8List? _frameBytes;
-  bool _isFetching = false;
+  bool _isStreaming = false;
   bool _isOnline = false;
   int _consecutiveFailures = 0;
+  late final HttpClient _httpClient;
+
+  bool get _isPhysicalFeed =>
+      widget.camera.id == 'CAM-001' ||
+      widget.camera.id == 'CAM-002' ||
+      widget.camera.id == 'SLOT-02';
 
   @override
   void initState() {
     super.initState();
-    if (widget.camera.id == 'CAM-001') {
+    _httpClient = HttpClient()
+      ..connectionTimeout = const Duration(milliseconds: 350)
+      ..idleTimeout = const Duration(seconds: 20);
+    if (_isPhysicalFeed) {
       _startLiveStream();
     }
   }
@@ -40,32 +48,42 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
   @override
   void didUpdateWidget(covariant LiveCameraFeed oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.camera.id == 'CAM-001' && _streamTimer == null) {
-      _startLiveStream();
-    } else if (widget.camera.id != 'CAM-001') {
-      _streamTimer?.cancel();
-      _streamTimer = null;
+    if (_isPhysicalFeed) {
+      if (!_isStreaming) {
+        _startLiveStream();
+      } else if (oldWidget.camera.id != widget.camera.id) {
+        _frameBytes = null; // Clear old buffer on camera swap
+      }
+    } else {
+      _isStreaming = false;
     }
   }
 
   void _startLiveStream() {
-    _streamTimer?.cancel();
-    // 50ms interval ~ 20 FPS video frame grab
-    _streamTimer = Timer.periodic(const Duration(milliseconds: 55), (_) {
-      _fetchNextFrame();
-    });
+    if (_isStreaming) return;
+    _isStreaming = true;
+    _streamLoop();
+  }
+
+  Future<void> _streamLoop() async {
+    while (_isStreaming && mounted) {
+      final start = DateTime.now();
+      await _fetchNextFrame();
+      final elapsed = DateTime.now().difference(start).inMilliseconds;
+      // Target ~30 FPS (32ms interval)
+      final sleepMs = (32 - elapsed).clamp(4, 32);
+      await Future.delayed(Duration(milliseconds: sleepMs));
+    }
   }
 
   Future<void> _fetchNextFrame() async {
-    if (_isFetching || !mounted) return;
-    _isFetching = true;
+    if (!mounted || !_isStreaming) return;
 
     try {
-      final client = HttpClient();
-      client.connectionTimeout = const Duration(milliseconds: 250);
-      final url = Uri.parse('http://127.0.0.1:5000/api/frame?t=${DateTime.now().millisecondsSinceEpoch}');
-      final request = await client.getUrl(url);
-      final response = await request.close().timeout(const Duration(milliseconds: 350));
+      final String camParam = (widget.camera.id == 'CAM-002' || widget.camera.id == 'SLOT-02') ? '2' : '1';
+      final url = Uri.parse('http://127.0.0.1:5000/api/frame?cam=$camParam');
+      final request = await _httpClient.getUrl(url);
+      final response = await request.close().timeout(const Duration(milliseconds: 400));
 
       if (response.statusCode == 200) {
         final bytes = await consolidateHttpClientResponseBytes(response);
@@ -79,11 +97,8 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
       } else {
         _handleFailure();
       }
-      client.close();
     } catch (_) {
       _handleFailure();
-    } finally {
-      _isFetching = false;
     }
   }
 
@@ -98,22 +113,24 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
 
   @override
   void dispose() {
-    _streamTimer?.cancel();
+    _isStreaming = false;
+    _httpClient.close(force: true);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool isCam1 = widget.camera.id == 'CAM-001';
+    final bool isPhysicalCam = widget.camera.id == 'CAM-001' || widget.camera.id == 'CAM-002' || widget.camera.id == 'SLOT-02';
 
-    if (isCam1) {
-      return _buildCam1Feed();
+    if (isPhysicalCam) {
+      return _buildCamFeed();
     } else {
       return _buildSimulatedFeed();
     }
   }
 
-  Widget _buildCam1Feed() {
+  Widget _buildCamFeed() {
+    final bool isCam2 = widget.camera.id == 'CAM-002' || widget.camera.id == 'SLOT-02';
     final bool hasThreat = widget.camera.currentDetection.contains('CRITICAL') ||
         widget.camera.currentDetection.contains('BREACH') ||
         widget.camera.currentDetection.contains('Intrusion');
@@ -124,7 +141,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Live Video Feed from Webcam
+            // Live Video Feed from Webcam / Phone
             Image.memory(
               _frameBytes!,
               fit: widget.fit,
@@ -159,11 +176,11 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
                   vertical: widget.isModal ? 4 : 3,
                 ),
                 decoration: BoxDecoration(
-                  color: hasThreat ? AppTheme.alertRed : AppTheme.radarGreen,
+                  color: hasThreat ? AppTheme.alertRed : (isCam2 ? AppTheme.tacticalAmber : AppTheme.radarGreen),
                   borderRadius: BorderRadius.circular(4),
                   boxShadow: [
                     BoxShadow(
-                      color: (hasThreat ? AppTheme.alertRed : AppTheme.radarGreen).withValues(alpha: 0.4),
+                      color: (hasThreat ? AppTheme.alertRed : (isCam2 ? AppTheme.tacticalAmber : AppTheme.radarGreen)).withValues(alpha: 0.4),
                       blurRadius: 8,
                     ),
                   ],
@@ -181,7 +198,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      hasThreat ? 'BREACH ALERT' : 'LIVE • LAP CAM 01',
+                      hasThreat ? 'BREACH ALERT' : (isCam2 ? 'LIVE • PHONE RECON' : 'LIVE • LAP CAM 01'),
                       style: GoogleFonts.inter(
                         fontSize: widget.isModal ? 11 : 9,
                         fontWeight: FontWeight.w800,
@@ -209,7 +226,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
                   border: Border.all(color: AppTheme.hairlineBorder),
                 ),
                 child: Text(
-                  'YOLOv11 • CAM-01',
+                  isCam2 ? 'YOLOv11 • CAM-02' : 'YOLOv11 • CAM-01',
                   style: GoogleFonts.inter(
                     color: AppTheme.tacticalAmber,
                     fontSize: widget.isModal ? 11 : 9,
@@ -239,15 +256,15 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.5)),
                 ),
-                child: const Icon(
-                  Icons.videocam_outlined,
+                child: Icon(
+                  isCam2 ? Icons.phone_android_rounded : Icons.videocam_outlined,
                   size: 28,
                   color: AppTheme.tacticalAmber,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
-                'CAM 01 • LAPTOP WEBCAM',
+                isCam2 ? 'CAM 02 • MOBILE RECON (PHONE)' : 'CAM 01 • LAPTOP WEBCAM',
                 style: GoogleFonts.inter(
                   color: AppTheme.titaniumWhite,
                   fontSize: 12,
@@ -257,7 +274,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Connecting to Python AI Backend (port 5000)...',
+                isCam2 ? 'Connect phone via USB (Iriun / DroidCam) or Tethering' : 'Connecting to Python AI Backend (port 5000)...',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   color: AppTheme.mutedSilver,

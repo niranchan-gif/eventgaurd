@@ -1,10 +1,11 @@
+# pyrefly: ignore [missing-import]
 import cv2
+# pyrefly: ignore [missing-import]
 import pytesseract
 from ultralytics import YOLO
 
 # ✅ Configure Tesseract path
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-
 # Load YOLOv11 model
 model = YOLO("yolo11n.pt")
 

@@ -6,10 +6,19 @@ import 'package:flutter/foundation.dart';
 class BackendLauncher {
   static Process? _backendProcess;
   static int? _backendPid;
+  static bool _isStarting = false;
+  static Completer<void>? _startCompleter;
+
+  static bool get isStarting => _isStarting;
 
   /// Ensures that the Python AI server is actively running.
   /// Launches backend_server.py if not already active.
   static Future<void> ensureBackendRunning() async {
+    if (_isStarting) {
+      debugPrint('[BACKEND] Launch already in progress, awaiting startup...');
+      return _startCompleter?.future;
+    }
+
     try {
       // 1. Check if backend is already responding
       if (await isBackendResponding()) {
@@ -17,17 +26,23 @@ class BackendLauncher {
         return;
       }
 
+      _isStarting = true;
+      _startCompleter = Completer<void>();
+
       // 2. Kill any stale/orphaned process lingering on port 5000
       await _killStaleProcessOnPort5000();
 
-      // 3. Resolve Python executable
-      final pythonExe = _resolvePythonExecutable();
-      debugPrint('[BACKEND] Launching Python backend with: $pythonExe ...');
+      // 3. Resolve Project Directory & Python executable
+      final projectDir = _resolveProjectDirectory();
+      final pythonExe = _resolvePythonExecutable(projectDir);
+      debugPrint('[BACKEND] Resolved Project Directory: ${projectDir.path}');
+      debugPrint('[BACKEND] Auto-launching Python backend with: $pythonExe ...');
 
-      // 4. Start backend_server.py managed by Flutter
+      // 4. Start backend_server.py managed by Flutter with unbuffered (-u) streaming
       final process = await Process.start(
         pythonExe,
-        ['backend_server.py'],
+        ['-u', 'backend_server.py'],
+        workingDirectory: projectDir.path,
         runInShell: false,
       );
 
@@ -37,15 +52,15 @@ class BackendLauncher {
 
       // Capture stdout & stderr for debugging
       process.stdout.transform(utf8.decoder).listen((line) {
-        debugPrint('[PYTHON] $line'.trim());
+        debugPrint('[PYTHON] ${line.trim()}');
       });
       process.stderr.transform(utf8.decoder).listen((line) {
-        debugPrint('[PYTHON ERR] $line'.trim());
+        debugPrint('[PYTHON ERR] ${line.trim()}');
       });
 
-      // 5. Poll until port 5000 responds (up to 15 seconds for YOLO model warmup)
-      for (int i = 0; i < 25; i++) {
-        await Future.delayed(const Duration(milliseconds: 600));
+      // 5. Poll until port 5000 responds (up to 30 seconds for YOLO model warmup)
+      for (int i = 0; i < 60; i++) {
+        await Future.delayed(const Duration(milliseconds: 500));
         if (await isBackendResponding()) {
           debugPrint('[BACKEND] Python AI server successfully synchronized on http://127.0.0.1:5000');
           break;
@@ -53,6 +68,11 @@ class BackendLauncher {
       }
     } catch (e) {
       debugPrint('[BACKEND LAUNCH ERROR] $e');
+    } finally {
+      _isStarting = false;
+      if (_startCompleter != null && !_startCompleter!.isCompleted) {
+        _startCompleter!.complete();
+      }
     }
   }
 
@@ -103,12 +123,44 @@ class BackendLauncher {
     }
   }
 
+  /// Traverses up from the executable or current working dir to locate backend_server.py
+  static Directory _resolveProjectDirectory() {
+    // 1. Check Directory.current
+    if (File('${Directory.current.path}/backend_server.py').existsSync()) {
+      return Directory.current;
+    }
+
+    // 2. Search parent directories from Platform.resolvedExecutable
+    try {
+      var dir = File(Platform.resolvedExecutable).parent;
+      for (int i = 0; i < 10; i++) {
+        if (File('${dir.path}/backend_server.py').existsSync()) {
+          return dir;
+        }
+        final parent = dir.parent;
+        if (parent.path == dir.path) break;
+        dir = parent;
+      }
+    } catch (_) {}
+
+    // 3. Known project directory fallback
+    final knownDir = Directory(r'd:\vscode\borderguard_ai');
+    if (File('${knownDir.path}\\backend_server.py').existsSync()) {
+      return knownDir;
+    }
+
+    return Directory.current;
+  }
+
   /// Resolves the preferred Python binary (local virtualenv or system python).
-  static String _resolvePythonExecutable() {
-    final venvWin = File('venv\\Scripts\\python.exe');
+  static String _resolvePythonExecutable(Directory projectDir) {
+    final venvWin = File('${projectDir.path}\\venv\\Scripts\\python.exe');
     if (venvWin.existsSync()) return venvWin.path;
 
-    final venvUnix = File('venv/bin/python');
+    final knownVenv = File(r'd:\vscode\borderguard_ai\venv\Scripts\python.exe');
+    if (knownVenv.existsSync()) return knownVenv.path;
+
+    final venvUnix = File('${projectDir.path}/venv/bin/python');
     if (venvUnix.existsSync()) return venvUnix.path;
 
     return 'python';

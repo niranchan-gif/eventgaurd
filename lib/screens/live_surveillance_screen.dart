@@ -314,10 +314,11 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
                                   runSpacing: 6,
                                   children: [
                                     _buildModeButton(context, 'ALL ENGINES', 'all', currentMode),
-                                    _buildModeButton(context, 'OBJECTS (YOLO)', 'detection', currentMode),
+                                    _buildModeButton(context, 'HUMAN', 'person', currentMode),
+                                    _buildModeButton(context, 'VEHICLE', 'vehicle', currentMode),
                                     _buildModeButton(context, 'VIRTUAL FENCE', 'fence', currentMode),
                                     _buildModeButton(context, 'FACE DETECT', 'face', currentMode),
-                                    _buildModeButton(context, 'ANPR (PLATES)', 'anpr', currentMode),
+                                    _buildModeButton(context, 'ANPR', 'anpr', currentMode),
                                   ],
                                 ),
                                 const Divider(color: AppTheme.hairlineBorder, height: 24),
@@ -370,27 +371,30 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
   }
 
   Widget _buildModeButton(BuildContext context, String label, String modeKey, String currentMode) {
-    final bool isSelected = currentMode == modeKey;
-    return InkWell(
-      onTap: () {
-        context.read<MockState>().setAiMode(modeKey);
-      },
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.tacticalAmber : AppTheme.charcoalSurface,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: isSelected ? AppTheme.tacticalAmber : AppTheme.hairlineBorder,
+    final bool isSelected = currentMode.toLowerCase() == modeKey.toLowerCase();
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          context.read<MockState>().setAiMode(modeKey);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.tacticalAmber : AppTheme.charcoalSurface,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: isSelected ? AppTheme.tacticalAmber : AppTheme.hairlineBorder,
+            ),
           ),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.inter(
-            color: isSelected ? AppTheme.obsidianBlack : AppTheme.titaniumWhite,
-            fontWeight: FontWeight.bold,
-            fontSize: 10,
+          child: Text(
+            label,
+            style: GoogleFonts.inter(
+              color: isSelected ? AppTheme.obsidianBlack : AppTheme.titaniumWhite,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
           ),
         ),
       ),

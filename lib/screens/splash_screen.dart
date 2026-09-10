@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../mock/mock_state.dart';
 import '../theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -10,14 +12,44 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  String _bootStatus = 'INITIALIZING DEFENSE SENSOR GRID & AI PIPELINES...';
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 1800), () {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    });
+    _startBootSequence();
+  }
+
+  void _startBootSequence() async {
+    // Step 1: Camera Grid Link
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _bootStatus = 'COMMENCING HARDWARE LINK: CAM-01 [LAPTOP] & CAM-02 [PHONE RECON]...';
+      });
+    }
+
+    // Step 2: Auto-Authentication of Defense Commander
+    await Future.delayed(const Duration(milliseconds: 700));
+    if (mounted) {
+      context.read<MockState>().instantCommanderLogin();
+      setState(() {
+        _bootStatus = 'AUTOMATIC BIOMETRIC CLEARANCE: COMMANDER SARAH VANCE...';
+      });
+    }
+
+    // Step 3: Launch Tactical Operations Center
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _bootStatus = 'SYSTEM INITIALIZED • DEPLOYING TACTICAL OPERATIONS CENTER';
+      });
+    }
+
+    await Future.delayed(const Duration(milliseconds: 400));
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/main');
+    }
   }
 
   @override
@@ -29,22 +61,28 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(22),
+              width: 140,
+              height: 140,
               decoration: BoxDecoration(
-                color: AppTheme.charcoalSurface,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppTheme.tacticalAmber, width: 2),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.6), width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.tacticalAmber.withValues(alpha: 0.25),
-                    blurRadius: 28,
+                    color: AppTheme.tacticalAmber.withValues(alpha: 0.3),
+                    blurRadius: 36,
                     spreadRadius: 4,
                   ),
                 ],
               ),
-              child: const Icon(Icons.security, size: 64, color: AppTheme.tacticalAmber),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(26),
+                child: Image.asset(
+                  'assets/images/app_logo.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
             Text(
               'BORDERGUARD AI',
               style: GoogleFonts.inter(
@@ -78,8 +116,8 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 18),
             Text(
-              'INITIALIZING DEFENSE SENSOR GRID & AI PIPELINES...',
-              style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11, letterSpacing: 0.8, fontWeight: FontWeight.w600),
+              _bootStatus,
+              style: GoogleFonts.inter(color: AppTheme.tacticalAmber, fontSize: 11, letterSpacing: 0.8, fontWeight: FontWeight.w700),
             ),
           ],
         ),

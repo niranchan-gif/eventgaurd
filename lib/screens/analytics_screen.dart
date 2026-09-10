@@ -525,8 +525,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('AI FILTER:', style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 9, fontWeight: FontWeight.bold)),
-                          ...['all', 'fence', 'detection', 'face', 'anpr'].map((m) {
-                            final isActive = state.activeAiMode == m;
+                          ...['all', 'person', 'vehicle', 'fence', 'face'].map((m) {
+                            final isActive = state.activeAiMode.toLowerCase() == m.toLowerCase();
+                            final label = m == 'person' ? 'HUMAN' : m == 'vehicle' ? 'VEHICLE' : m == 'fence' ? 'TRIPWIRE' : m == 'face' ? 'FACE' : 'ALL';
                             return InkWell(
                               onTap: () => state.setAiMode(m),
                               child: Container(
@@ -536,7 +537,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                   borderRadius: BorderRadius.circular(3),
                                 ),
                                 child: Text(
-                                  m.toUpperCase(),
+                                  label,
                                   style: GoogleFonts.inter(
                                     color: isActive ? AppTheme.obsidianBlack : AppTheme.titaniumWhite,
                                     fontSize: 9,

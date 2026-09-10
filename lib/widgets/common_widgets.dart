@@ -13,7 +13,7 @@ class TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<MockState>();
-    final user = state.currentUser ?? UserModel.commanderAlpha;
+    final user = state.currentUser ?? UserModel.unassigned;
     final activeAlerts = state.alerts.where((a) => a.status == AlertStatus.active).length;
 
     return Container(
@@ -70,9 +70,15 @@ class TopBar extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppTheme.charcoalSurface,
+                  color: state.defconColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.hairlineBorder),
+                  border: Border.all(color: state.defconColor.withValues(alpha: 0.7), width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: state.defconColor.withValues(alpha: 0.2),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -80,10 +86,10 @@ class TopBar extends StatelessWidget {
                     const PulsingRadarDot(),
                     const SizedBox(width: 8),
                     Text(
-                      'DEFENSE GRID ACTIVE',
+                      state.defconStatus,
                       style: GoogleFonts.inter(
-                        color: AppTheme.titaniumWhite,
-                        fontWeight: FontWeight.w700,
+                        color: state.defconColor,
+                        fontWeight: FontWeight.w800,
                         fontSize: 11,
                         letterSpacing: 0.5,
                       ),
@@ -128,15 +134,16 @@ class TopBar extends StatelessWidget {
                                 fontSize: 13,
                               ),
                             ),
-                            if (user.provider == AuthProvider.google) ...[
+                            if (user.provider == AuthProvider.github) ...[
                               const SizedBox(width: 6),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF4285F4).withValues(alpha: 0.2),
+                                  color: const Color(0xFF2EA44F).withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(3),
+                                  border: Border.all(color: const Color(0xFF2EA44F).withValues(alpha: 0.6)),
                                 ),
-                                child: Text('GOOGLE', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: const Color(0xFF4285F4))),
+                                child: Text('DEFENSE C2', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: const Color(0xFF2EA44F))),
                               ),
                             ],
                           ],
@@ -170,7 +177,7 @@ class TopBar extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: user.provider == AuthProvider.google ? const Color(0xFF4285F4) : AppTheme.tacticalAmber,
+                        color: user.provider == AuthProvider.github ? const Color(0xFF2EA44F) : AppTheme.tacticalAmber,
                         width: 1.5,
                       ),
                     ),
@@ -180,7 +187,7 @@ class TopBar extends StatelessWidget {
                       child: Text(
                         user.initials,
                         style: GoogleFonts.inter(
-                          color: user.provider == AuthProvider.google ? const Color(0xFF4285F4) : AppTheme.tacticalAmber,
+                          color: user.provider == AuthProvider.github ? const Color(0xFF2EA44F) : AppTheme.tacticalAmber,
                           fontWeight: FontWeight.bold,
                           fontSize: 10,
                         ),
@@ -349,7 +356,7 @@ class Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<MockState>();
-    final user = state.currentUser ?? UserModel.commanderAlpha;
+    final user = state.currentUser ?? UserModel.unassigned;
 
     return Container(
       width: 250,
@@ -360,27 +367,33 @@ class Sidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 20),
-          // Tactical Logo Header
+          const SizedBox(height: 18),
+          // Tactical Logo Header with Official BorderGuard AI Emblem
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: AppTheme.charcoalSurface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.8), width: 1.4),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.8), width: 1.5),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.tacticalAmber.withValues(alpha: 0.15),
-                        blurRadius: 10,
+                        color: AppTheme.tacticalAmber.withValues(alpha: 0.25),
+                        blurRadius: 14,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.shield, size: 20, color: AppTheme.tacticalAmber),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      'assets/images/app_logo.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -389,13 +402,21 @@ class Sidebar extends StatelessWidget {
                     children: [
                       Text(
                         'BorderGuard AI',
-                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.titaniumWhite, letterSpacing: 0.2),
+                        style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w900, color: AppTheme.titaniumWhite, letterSpacing: 0.3),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      Text(
-                        'C2 DEFENSE GRID',
-                        style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, letterSpacing: 0.8),
-                        overflow: TextOverflow.ellipsis,
+                      const SizedBox(height: 2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.charcoalSurface,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: AppTheme.hairlineBorder),
+                        ),
+                        child: Text(
+                          'C2 DEFENSE GRID',
+                          style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, letterSpacing: 0.8),
+                        ),
                       ),
                     ],
                   ),
@@ -403,21 +424,42 @@ class Sidebar extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           const Divider(color: AppTheme.hairlineBorder, height: 1),
-          // Nav items list
+          // Streamlined Tactical Nav items
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               children: [
-                _SidebarNavItem(index: 0, title: 'Dashboard Overview', icon: Icons.dashboard_outlined, isSelected: selectedIndex == 0, onTap: () => onItemSelected(0)),
-                _SidebarNavItem(index: 1, title: 'Live Surveillance Grid', icon: Icons.videocam_outlined, isSelected: selectedIndex == 1, onTap: () => onItemSelected(1)),
-                _SidebarNavItem(index: 2, title: 'Threats & Alert Feed', icon: Icons.warning_amber_rounded, isSelected: selectedIndex == 2, onTap: () => onItemSelected(2)),
-                _SidebarNavItem(index: 3, title: 'Tactical Perimeter Map', icon: Icons.map_outlined, isSelected: selectedIndex == 3, onTap: () => onItemSelected(3)),
-                _SidebarNavItem(index: 4, title: 'Incident Log & Dispatch', icon: Icons.assignment_outlined, isSelected: selectedIndex == 4, onTap: () => onItemSelected(4)),
-                _SidebarNavItem(index: 5, title: 'Intelligence & Analytics', icon: Icons.analytics_outlined, isSelected: selectedIndex == 5, onTap: () => onItemSelected(5)),
-                _SidebarNavItem(index: 6, title: 'Sensor Grid Nodes', icon: Icons.camera_alt_outlined, isSelected: selectedIndex == 6, onTap: () => onItemSelected(6)),
-                _SidebarNavItem(index: 7, title: 'System Configuration', icon: Icons.settings_outlined, isSelected: selectedIndex == 7, onTap: () => onItemSelected(7)),
+                _SidebarNavItem(
+                  index: 0,
+                  title: 'Command Dashboard',
+                  icon: Icons.space_dashboard_rounded,
+                  isSelected: selectedIndex == 0,
+                  onTap: () => onItemSelected(0),
+                ),
+                _SidebarNavItem(
+                  index: 1,
+                  title: 'Live AI Surveillance',
+                  icon: Icons.videocam_rounded,
+                  isSelected: selectedIndex == 1,
+                  onTap: () => onItemSelected(1),
+                ),
+                _SidebarNavItem(
+                  index: 2,
+                  title: 'Perimeter Radar & Map',
+                  icon: Icons.radar_rounded,
+                  isSelected: selectedIndex == 2,
+                  onTap: () => onItemSelected(2),
+                ),
+                _SidebarNavItem(
+                  index: 3,
+                  title: 'Threat Feed & Dispatch',
+                  icon: Icons.security_update_warning_rounded,
+                  isSelected: selectedIndex == 3,
+                  badgeCount: state.alerts.where((a) => a.status == AlertStatus.active).length,
+                  onTap: () => onItemSelected(3),
+                ),
               ],
             ),
           ),
@@ -430,7 +472,7 @@ class Sidebar extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 16,
-                  backgroundColor: user.provider == AuthProvider.google ? const Color(0xFF4285F4) : AppTheme.tacticalAmber,
+                  backgroundColor: user.provider == AuthProvider.github ? const Color(0xFF2EA44F) : AppTheme.tacticalAmber,
                   child: Text(
                     user.initials,
                     style: const TextStyle(color: AppTheme.obsidianBlack, fontSize: 11, fontWeight: FontWeight.w900),
@@ -450,9 +492,9 @@ class Sidebar extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (user.provider == AuthProvider.google) ...[
+                          if (user.provider == AuthProvider.github) ...[
                             const SizedBox(width: 4),
-                            const Icon(Icons.verified, size: 12, color: Color(0xFF4285F4)),
+                            const Icon(Icons.verified, size: 12, color: Color(0xFF2EA44F)),
                           ],
                         ],
                       ),
@@ -487,6 +529,7 @@ class _SidebarNavItem extends StatefulWidget {
   final String title;
   final IconData icon;
   final bool isSelected;
+  final int badgeCount;
   final VoidCallback onTap;
 
   const _SidebarNavItem({
@@ -494,6 +537,7 @@ class _SidebarNavItem extends StatefulWidget {
     required this.title,
     required this.icon,
     required this.isSelected,
+    this.badgeCount = 0,
     required this.onTap,
   });
 
@@ -565,6 +609,22 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (widget.badgeCount > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.alertRed,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${widget.badgeCount}',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

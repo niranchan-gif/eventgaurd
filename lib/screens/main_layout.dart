@@ -2,12 +2,8 @@ import 'package:flutter/material.dart';
 import '../widgets/common_widgets.dart';
 import 'dashboard_screen.dart';
 import 'live_surveillance_screen.dart';
-import 'alerts_screen.dart';
 import 'map_screen.dart';
-import 'incidents_screen.dart';
-import 'analytics_screen.dart';
-import 'cameras_screen.dart';
-import 'settings_screen.dart';
+import 'alerts_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({Key? key}) : super(key: key);
@@ -22,23 +18,15 @@ class _MainLayoutState extends State<MainLayout> {
   final List<Widget> _screens = const [
     DashboardScreen(),
     LiveSurveillanceScreen(),
-    AlertsScreen(),
     MapScreen(),
-    IncidentsScreen(),
-    AnalyticsScreen(),
-    CamerasScreen(),
-    SettingsScreen(),
+    AlertsScreen(),
   ];
 
   final List<String> _titles = const [
-    'Dashboard Overview',
-    'Live Surveillance Grid',
-    'Threat Detection & Alerts',
-    'Tactical Border Map',
-    'Incident Log & Dispatch',
-    'Surveillance Analytics',
-    'Camera Grid Management',
-    'System Configuration',
+    'Tactical Command & Operations (C2)',
+    'Live AI Surveillance & Neural Grid',
+    'Perimeter Radar & Tactical Deployment',
+    'Threat Intelligence & Incident Response',
   ];
 
   @override

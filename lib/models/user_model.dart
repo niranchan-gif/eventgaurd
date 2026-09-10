@@ -1,4 +1,4 @@
-enum AuthProvider { password, google }
+enum AuthProvider { password, github }
 
 class UserModel {
   final String id;
@@ -31,48 +31,27 @@ class UserModel {
     return 'OP';
   }
 
-  // Pre-configured default tactical and Google accounts
-  static const UserModel commanderAlpha = UserModel(
-    id: 'USR-CMD-01',
-    name: 'Arun Kumar',
-    callsign: 'commander_alpha',
-    email: 'arun.kumar@borderguard.mil',
-    role: 'Surveillance Commander',
-    clearanceLevel: 'LEVEL 5 • DEFCON-1 COMMAND',
+  // Default auto-initialized commander profile for zero-manual instant boot
+  static const UserModel defaultCommander = UserModel(
+    id: 'OP-COMMANDER-01',
+    name: 'Commander Sarah Vance',
+    callsign: 'VANCE-01',
+    email: 'commander.vance@borderguard.mil',
+    role: 'Chief Tactical Defense Officer',
+    clearanceLevel: 'LEVEL 4 • COMMAND CLEARANCE',
     avatarUrl: null,
     provider: AuthProvider.password,
   );
 
-  static const UserModel tacticalOperator = UserModel(
-    id: 'USR-OPS-02',
-    name: 'Elena Rostova',
-    callsign: 'operator_01',
-    email: 'elena.rostova@borderguard.mil',
-    role: 'Perimeter Tactical Specialist',
-    clearanceLevel: 'LEVEL 3 • SENSOR OPERATOR',
+  // Generic fallback if an unauthenticated widget requires a fallback instance
+  static const UserModel unassigned = UserModel(
+    id: 'OP-UNASSIGNED',
+    name: 'Operator On-Duty',
+    callsign: 'operator',
+    email: 'c2@borderguard.mil',
+    role: 'Defense Watch Officer',
+    clearanceLevel: 'LEVEL 1 • STATION ACTIVE',
     avatarUrl: null,
     provider: AuthProvider.password,
-  );
-
-  static const UserModel googleDemoUser1 = UserModel(
-    id: 'GGL-8829104',
-    name: 'Dr. Arjun Mehta',
-    callsign: 'arjun.mehta',
-    email: 'arjun.mehta.defense@gmail.com',
-    role: 'Chief AI Defense Analyst',
-    clearanceLevel: 'LEVEL 4 • DIRECT AI OVERSIGHT',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-    provider: AuthProvider.google,
-  );
-
-  static const UserModel googleDemoUser2 = UserModel(
-    id: 'GGL-9301284',
-    name: 'Sarah Connor',
-    callsign: 's.connor',
-    email: 'sarah.connor.sentinel@gmail.com',
-    role: 'Perimeter Defense Officer',
-    clearanceLevel: 'LEVEL 4 • RAPID RESPONSE',
-    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
-    provider: AuthProvider.google,
   );
 }

@@ -8,6 +8,8 @@ import '../models/alert.dart';
 import '../models/incident.dart';
 import '../models/zone.dart';
 import '../models/user_model.dart';
+import '../services/github_auth_service.dart';
+import '../services/backend_launcher.dart';
 
 class LiveFeedEvent {
   final String id;
@@ -36,9 +38,20 @@ class MockState extends ChangeNotifier {
   bool isBackendConnected = false;
   bool isCameraOn = true;
   double cam1Fps = 0.0;
+  double cam2Fps = 0.0;
+  String selectedDashboardCameraId = 'CAM-001';
+  String cam2Source = '1';
+  String cam1DeviceName = 'Laptop Webcam';
+  String cam2DeviceName = 'Phone Recon Camera';
   String activeAiMode = "all";
   Map<String, int> cam1Counts = {'person': 0, 'vehicle': 0, 'animal': 0, 'face': 0};
+  Map<String, int> cam2Counts = {'person': 0, 'vehicle': 0, 'animal': 0, 'face': 0};
   bool intrusionDetected = false;
+
+  void selectDashboardCamera(String id) {
+    selectedDashboardCameraId = id;
+    notifyListeners();
+  }
 
   // Live Stream Performance Metrics
   double liveBitrateKbps = 1450.0;
@@ -50,9 +63,9 @@ class MockState extends ChangeNotifier {
   int _prevVehicleCount = 0;
   int _prevFaceCount = 0;
 
-  // Authentication State
-  UserModel? currentUser = UserModel.commanderAlpha;
-  bool isAuthenticated = true;
+  // Authentication State - Initialized clean; auto-authorized by SplashScreen boot sequence
+  UserModel? currentUser;
+  bool isAuthenticated = false;
 
   // System Configuration & Preferences State
   double detectionSensitivity = 0.85;
@@ -86,6 +99,7 @@ class MockState extends ChangeNotifier {
   MockState() {
     _initLiveEvents();
     _startBackendPolling();
+    BackendLauncher.ensureBackendRunning();
   }
 
   void _initLiveEvents() {
@@ -125,12 +139,14 @@ class MockState extends ChangeNotifier {
     });
   }
 
+  final HttpClient _telemetryClient = HttpClient()
+    ..connectionTimeout = const Duration(milliseconds: 500)
+    ..idleTimeout = const Duration(seconds: 15);
+
   Future<void> _pollTelemetry() async {
     final stopwatch = Stopwatch()..start();
     try {
-      final client = HttpClient();
-      client.connectionTimeout = const Duration(milliseconds: 600);
-      final request = await client.getUrl(Uri.parse('http://127.0.0.1:5000/api/telemetry'));
+      final request = await _telemetryClient.getUrl(Uri.parse('http://127.0.0.1:5000/api/telemetry'));
       final response = await request.close().timeout(const Duration(milliseconds: 600));
 
       if (response.statusCode == 200) {
@@ -143,6 +159,7 @@ class MockState extends ChangeNotifier {
         bool notifyNeeded = false;
         if (!isBackendConnected) {
           isBackendConnected = true;
+          _disconnectPollCount = 0;
           notifyNeeded = true;
         }
 
@@ -150,6 +167,14 @@ class MockState extends ChangeNotifier {
           final serverCamOn = data['camera_enabled'] == true;
           if (isCameraOn != serverCamOn) {
             isCameraOn = serverCamOn;
+            notifyNeeded = true;
+          }
+        }
+
+        if (data.containsKey('device_name')) {
+          final d1 = data['device_name'] as String? ?? 'Laptop Webcam';
+          if (cam1DeviceName != d1) {
+            cam1DeviceName = d1;
             notifyNeeded = true;
           }
         }
@@ -290,6 +315,41 @@ class MockState extends ChangeNotifier {
           }
         }
 
+        // Parse CAM-002 (Phone / Mobile Recon Node) telemetry
+        if (data['cameras'] is Map && data['cameras']['CAM-002'] is Map) {
+          final c2 = data['cameras']['CAM-002'] as Map<String, dynamic>;
+          cam2Fps = (c2['fps'] as num?)?.toDouble() ?? 0.0;
+          if (c2['counts'] is Map) {
+            cam2Counts = {
+              'person': (c2['counts']['person'] as num?)?.toInt() ?? 0,
+              'vehicle': (c2['counts']['vehicle'] as num?)?.toInt() ?? 0,
+              'animal': (c2['counts']['animal'] as num?)?.toInt() ?? 0,
+              'face': (c2['counts']['face'] as num?)?.toInt() ?? 0,
+            };
+          }
+          final cam2Index = cameras.indexWhere((c) => c.id == 'CAM-002');
+          if (cam2Index != -1) {
+            final c2Status = c2['status'] as String? ?? 'standby';
+            cameras[cam2Index].status = (c2Status == 'online') ? CameraStatus.online : CameraStatus.offline;
+            cameras[cam2Index].lastActive = DateTime.now();
+            final c2Detection = c2['current_detection'] as String? ?? 'Awaiting Mobile Recon Link';
+            if (cameras[cam2Index].currentDetection != c2Detection) {
+              cameras[cam2Index].currentDetection = c2Detection;
+              notifyNeeded = true;
+            }
+            if (c2.containsKey('source')) {
+              cam2Source = c2['source'].toString();
+            }
+            if (c2.containsKey('device_name')) {
+              final d2 = c2['device_name'] as String? ?? 'Phone Recon Camera';
+              if (cam2DeviceName != d2) {
+                cam2DeviceName = d2;
+                notifyNeeded = true;
+              }
+            }
+          }
+        }
+
         // 1. Live Intrusion Breaches generated directly from CAM-01
         if (intrusionDetected) {
           if (!alerts.any((a) => a.title.contains('Intrusion') && now.difference(a.detectedAt).inSeconds < 12)) {
@@ -375,21 +435,28 @@ class MockState extends ChangeNotifier {
       } else {
         _handleBackendDisconnect();
       }
-      client.close();
     } catch (_) {
       _handleBackendDisconnect();
     }
   }
 
+  int _disconnectPollCount = 0;
+
   void _handleBackendDisconnect() {
+    _disconnectPollCount++;
     if (isBackendConnected) {
       isBackendConnected = false;
       final camIndex = cameras.indexWhere((c) => c.id == 'CAM-001');
       if (camIndex != -1) {
         cameras[camIndex].status = CameraStatus.offline;
-        cameras[camIndex].currentDetection = 'Offline (Start backend_server.py)';
+        cameras[camIndex].currentDetection = 'Auto-Initializing Optical Stream...';
       }
       notifyListeners();
+    }
+
+    // Automatically ensure backend is running only if down for > 10 seconds and not already starting
+    if (!BackendLauncher.isStarting && _disconnectPollCount > 15 && _disconnectPollCount % 12 == 0) {
+      BackendLauncher.ensureBackendRunning();
     }
   }
 
@@ -416,20 +483,67 @@ class MockState extends ChangeNotifier {
   }
 
   Future<bool> setAiMode(String mode) async {
+    // Immediately update local state for zero-latency UI response
+    activeAiMode = mode;
+    notifyListeners();
+
     try {
-      final client = HttpClient();
+      final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 600);
       final request = await client.postUrl(Uri.parse('http://127.0.0.1:5000/api/mode'));
       request.headers.set('Content-Type', 'application/json');
       request.write(json.encode({'mode': mode}));
-      final response = await request.close();
+      final response = await request.close().timeout(const Duration(milliseconds: 600));
       client.close();
-      if (response.statusCode == 200) {
-        activeAiMode = mode;
-        notifyListeners();
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> updateCameraSource(String cameraId, String newSource) async {
+    try {
+      final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 700);
+      final req = await client.postUrl(Uri.parse('http://127.0.0.1:5000/api/camera/source'));
+      req.headers.set('Content-Type', 'application/json');
+      req.write(json.encode({'camera_id': cameraId, 'source': newSource}));
+      final resp = await req.close().timeout(const Duration(milliseconds: 700));
+      client.close();
+      if (resp.statusCode == 200) {
+        if (cameraId == 'CAM-002' || cameraId == '2') {
+          cam2Source = newSource;
+          notifyListeners();
+        }
         return true;
       }
-    } catch (_) {}
-    return false;
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> swapCameras() async {
+    try {
+      final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 700);
+      final req = await client.postUrl(Uri.parse('http://127.0.0.1:5000/api/camera/swap'));
+      final resp = await req.close().timeout(const Duration(milliseconds: 700));
+      client.close();
+      if (resp.statusCode == 200) {
+        // Optimistically swap local device names
+        final temp = cam1DeviceName;
+        cam1DeviceName = cam2DeviceName;
+        cam2DeviceName = temp;
+        
+        final tempSrc = cam2Source;
+        cam2Source = (tempSrc == '1') ? '0' : '1';
+        
+        notifyListeners();
+        await _pollTelemetry();
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
   }
 
   String get defconStatus {
@@ -459,6 +573,7 @@ class MockState extends ChangeNotifier {
   @override
   void dispose() {
     _pollTimer?.cancel();
+    _telemetryClient.close(force: true);
     super.dispose();
   }
 
@@ -482,16 +597,21 @@ class MockState extends ChangeNotifier {
       currentDetection: 'Active Monitoring • Lap Cam 01',
     ),
     Camera(
-      id: 'SLOT-02',
-      name: 'Channel 02 [Empty]',
-      location: 'No Physical Stream Assigned',
+      id: 'CAM-002',
+      name: 'Mobile Recon Node (Phone Cam)',
+      location: 'Sector 02 Mobile Patrol',
       zone: 'Sector 02',
-      status: CameraStatus.offline,
-      signal: 'Disconnected',
+      status: CameraStatus.online,
+      signal: 'Direct USB Link',
       lastActive: DateTime.now(),
-      isEmptySlot: true,
-      detectionModes: {},
-      currentDetection: 'Vacant Channel • No Input',
+      isEmptySlot: false,
+      detectionModes: {
+        'YOLO Objects': DetectionMode.active,
+        'Virtual Fence': DetectionMode.active,
+        'Face Detect': DetectionMode.active,
+        'ANPR': DetectionMode.active,
+      },
+      currentDetection: 'Active Monitoring • Phone Cam 02',
     ),
     Camera(
       id: 'SLOT-03',
@@ -632,61 +752,72 @@ class MockState extends ChangeNotifier {
   }
 
   // --- Authentication Handlers ---
-  String? loginWithUsernameAndPassword(String username, String password) {
+  Future<String?> loginWithUsernameAndPassword(String username, String password) async {
     final trimmedUser = username.trim();
     final trimmedPass = password.trim();
 
     if (trimmedUser.isEmpty) {
-      return 'Please enter your Operator Call-sign / Username';
+      return 'Please enter your registered Operator Call-sign / Username';
     }
     if (trimmedPass.isEmpty) {
       return 'Please enter your Security Key / Password';
     }
 
-    // Default Commander Alpha check
-    if (trimmedUser.toLowerCase() == 'commander_alpha' || trimmedUser.toLowerCase() == 'arun kumar') {
-      if (trimmedPass == 'password123' || trimmedPass == 'admin123' || trimmedPass == '••••••••••••') {
-        currentUser = UserModel.commanderAlpha;
+    // Direct match for Chief Tactical Commander for instant offline authorized bypass
+    if ((trimmedUser.toUpperCase() == 'VANCE-01' || trimmedUser.toLowerCase() == 'admin' || trimmedUser.toLowerCase() == 'commander') &&
+        (trimmedPass.isNotEmpty)) {
+      currentUser = UserModel.defaultCommander;
+      isAuthenticated = true;
+      notifyListeners();
+      return null;
+    }
+
+    try {
+      final user = await GitHubAuthService.authenticateOperator(trimmedUser, trimmedPass);
+      if (user != null) {
+        currentUser = user;
         isAuthenticated = true;
         notifyListeners();
         return null;
       }
-      return 'Invalid Security Key for call-sign commander_alpha';
+      return 'ACCESS DENIED: No registered operator matches callsign "$trimmedUser" or security key is invalid.';
+    } catch (e) {
+      return 'Authentication Error: ${e.toString().replaceAll('Exception:', '').trim()}';
     }
-
-    // Secondary tactical specialist check
-    if (trimmedUser.toLowerCase() == 'operator_01' || trimmedUser.toLowerCase() == 'elena rostova') {
-      if (trimmedPass == 'operator123' || trimmedPass == '••••••••••••') {
-        currentUser = UserModel.tacticalOperator;
-        isAuthenticated = true;
-        notifyListeners();
-        return null;
-      }
-      return 'Invalid Security Key for call-sign operator_01';
-    }
-
-    // Allow custom operator accounts if length >= 4
-    if (trimmedPass.length < 4) {
-      return 'Security Key must contain at least 4 characters';
-    }
-
-    currentUser = UserModel(
-      id: 'USR-SEC-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
-      name: trimmedUser,
-      callsign: trimmedUser.toLowerCase().replaceAll(' ', '_'),
-      email: '${trimmedUser.toLowerCase().replaceAll(' ', '.')}@borderguard.mil',
-      role: 'Sector Field Officer',
-      clearanceLevel: 'LEVEL 3 • FIELD OPERATOR',
-      avatarUrl: null,
-      provider: AuthProvider.password,
-    );
-    isAuthenticated = true;
-    notifyListeners();
-    return null;
   }
 
-  void loginWithGoogle(UserModel googleUser) {
-    currentUser = googleUser;
+  void instantCommanderLogin() {
+    currentUser = UserModel.defaultCommander;
+    isAuthenticated = true;
+    notifyListeners();
+  }
+
+  Future<String?> registerOperator({
+    required String username,
+    required String password,
+    required String name,
+    required String role,
+    required String clearanceLevel,
+  }) async {
+    try {
+      final user = await GitHubAuthService.registerOperator(
+        username: username,
+        password: password,
+        name: name,
+        role: role,
+        clearanceLevel: clearanceLevel,
+      );
+      currentUser = user;
+      isAuthenticated = true;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      return e.toString().replaceAll('Exception:', '').trim();
+    }
+  }
+
+  void loginWithGitHub(UserModel githubUser) {
+    currentUser = githubUser;
     isAuthenticated = true;
     notifyListeners();
   }
