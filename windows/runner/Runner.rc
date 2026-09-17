@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "borderguard_ai" "\0"
+            VALUE "FileDescription", "eventguard_ai" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "borderguard_ai" "\0"
+            VALUE "InternalName", "eventguard_ai" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "borderguard_ai.exe" "\0"
-            VALUE "ProductName", "borderguard_ai" "\0"
+            VALUE "OriginalFilename", "eventguard_ai.exe" "\0"
+            VALUE "ProductName", "eventguard_ai" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

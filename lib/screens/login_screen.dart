@@ -254,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                         // System Title
                         Text(
-                          'BORDERGUARD AI',
+                          'EVENTGUARD AI',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.orbitron(
                             fontSize: 21,

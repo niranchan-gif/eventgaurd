@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:borderguard_ai/mock/mock_state.dart';
-import 'package:borderguard_ai/models/user_model.dart';
-import 'package:borderguard_ai/services/vault_encryption_service.dart';
+import 'package:eventguard_ai/mock/mock_state.dart';
+import 'package:eventguard_ai/models/user_model.dart';
+import 'package:eventguard_ai/services/vault_encryption_service.dart';
 
 void main() {
   test('Strict Operator Registration & Encrypted Vault Authentication Test', () async {
@@ -62,7 +62,7 @@ void main() {
       id: 'GH-8829',
       name: 'Niranchan (Lead)',
       callsign: 'niranchan-gif',
-      email: 'niranchan@borderguard.mil',
+      email: 'niranchan@eventguard.mil',
       role: 'Lead Defense Architect',
       clearanceLevel: 'LEVEL 5 • ROOT C2 ARCHITECT',
       provider: AuthProvider.github,

@@ -43,7 +43,7 @@ class BackendLauncher {
         pythonExe,
         ['-u', 'backend_server.py'],
         workingDirectory: projectDir.path,
-        runInShell: false,
+        runInShell: Platform.isWindows,
       );
 
       _backendProcess = process;
@@ -144,7 +144,7 @@ class BackendLauncher {
     } catch (_) {}
 
     // 3. Known project directory fallback
-    final knownDir = Directory(r'd:\vscode\borderguard_ai');
+    final knownDir = Directory(r'd:\vscode\eventguard_ai');
     if (File('${knownDir.path}\\backend_server.py').existsSync()) {
       return knownDir;
     }
@@ -157,7 +157,7 @@ class BackendLauncher {
     final venvWin = File('${projectDir.path}\\venv\\Scripts\\python.exe');
     if (venvWin.existsSync()) return venvWin.path;
 
-    final knownVenv = File(r'd:\vscode\borderguard_ai\venv\Scripts\python.exe');
+    final knownVenv = File(r'd:\vscode\eventguard_ai\venv\Scripts\python.exe');
     if (knownVenv.existsSync()) return knownVenv.path;
 
     final venvUnix = File('${projectDir.path}/venv/bin/python');

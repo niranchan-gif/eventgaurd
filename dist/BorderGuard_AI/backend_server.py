@@ -1,5 +1,5 @@
 """
-EventGuard AI - Multi-Node High-Performance Backend Streaming & Detection Server
+BorderGuard AI - Multi-Node High-Performance Backend Streaming & Detection Server
 Features:
 - Multi-Camera Architecture:
     * CAM-001 (Laptop Webcam, default index 0)
@@ -732,7 +732,7 @@ camera_system = MultiCameraSystem()
 def index():
     camera_system.record_activity()
     return jsonify({
-        "service": "EventGuard AI Dual-Camera Video Backend",
+        "service": "BorderGuard AI Dual-Camera Video Backend",
         "cameras": {
             "CAM-001": "Laptop Webcam (Device Index 0)",
             "CAM-002": "Mobile Recon Node (Phone Cam: Device Index 1 / IP Stream)"
@@ -900,7 +900,7 @@ def api_shutdown():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="EventGuard AI Tactical Video Server")
+    parser = argparse.ArgumentParser(description="BorderGuard AI Tactical Video Server")
     parser.add_argument('--cam1', default=None, help='Camera 1 source (device index or stream URL)')
     parser.add_argument('--cam2', default=None, help='Camera 2 source (phone USB device index or IP stream URL)')
     parser.add_argument('--port', type=int, default=5000, help='Port to run Flask server')
@@ -914,7 +914,7 @@ if __name__ == '__main__':
 
     c1 = camera_system.get_camera('1')
     c2 = camera_system.get_camera('2')
-    print(f"[SERVER] Starting EventGuard AI Multi-Node Backend on http://127.0.0.1:{args.port} ...")
+    print(f"[SERVER] Starting BorderGuard AI Multi-Node Backend on http://127.0.0.1:{args.port} ...")
     print(f"[SERVER] CAM-001 assigned to source: {c1.source} ({c1.device_name})")
     print(f"[SERVER] CAM-002 assigned to source: {c2.source} ({c2.device_name})")
     app.run(host='0.0.0.0', port=args.port, debug=False, threaded=True)

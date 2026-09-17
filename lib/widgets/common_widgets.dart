@@ -368,7 +368,7 @@ class Sidebar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 18),
-          // Tactical Logo Header with Official BorderGuard AI Emblem
+          // Tactical Logo Header with Official EventGuard AI Emblem
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -401,7 +401,7 @@ class Sidebar extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'BorderGuard AI',
+                        'EventGuard AI',
                         style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w900, color: AppTheme.titaniumWhite, letterSpacing: 0.3),
                         overflow: TextOverflow.ellipsis,
                       ),

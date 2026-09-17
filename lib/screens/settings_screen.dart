@@ -188,7 +188,7 @@ class SettingsScreen extends StatelessWidget {
             _buildSettingsSection('HARDWARE TERMINAL & TELEMETRY', [
               _buildInfoTile('Active Physical Sensor', 'CAM-01 (Laptop Webcam) • 640x480 Direct Ingestion'),
               _buildInfoTile('Terminal Deployment State', 'Station 01 • Active Encrypted TLS Link'),
-              _buildInfoTile('Build Version', 'BorderGuard AI Tactical Suite v2.4.1 (SIH Special Edition)'),
+              _buildInfoTile('Build Version', 'EventGuard AI Tactical Suite v2.4.1 (SIH Special Edition)'),
             ]),
           ],
         ),

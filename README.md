@@ -1,4 +1,4 @@
-# borderguard_ai
+# eventguard_ai
 
 A new Flutter project.
 

@@ -54,7 +54,7 @@ class GitHubAuthService {
           'https://raw.githubusercontent.com/$defaultRepoOwner/$defaultRepoName/main/$encryptedVaultFileName',
         );
         final request = await client.getUrl(rawUrl);
-        request.headers.set('User-Agent', 'BorderGuard-AI-Defense/1.0');
+        request.headers.set('User-Agent', 'EventGuard-AI-Defense/1.0');
         final response = await request.close().timeout(const Duration(seconds: 3));
         if (response.statusCode == 200) {
           final encryptedContent = await response.transform(utf8.decoder).join();
@@ -106,7 +106,7 @@ class GitHubAuthService {
             id: op['id'] ?? 'OP-${DateTime.now().millisecondsSinceEpoch}',
             name: op['name'] ?? op['username'],
             callsign: op['callsign'] ?? op['username'],
-            email: op['email'] ?? '${op['username']}@borderguard.mil',
+            email: op['email'] ?? '${op['username']}@eventguard.mil',
             role: op['role'] ?? 'Defense Operator',
             clearanceLevel: op['clearanceLevel'] ?? 'LEVEL 3 • SENSOR OPERATOR',
             avatarUrl: null,
@@ -153,7 +153,7 @@ class GitHubAuthService {
       "username": cleanUsername,
       "callsign": cleanUsername,
       "name": name.trim(),
-      "email": '$cleanUsername@borderguard.mil',
+      "email": '$cleanUsername@eventguard.mil',
       "role": role.trim(),
       "clearanceLevel": clearanceLevel.trim(),
       "salt": salt,
@@ -178,7 +178,7 @@ class GitHubAuthService {
       id: newId,
       name: name.trim(),
       callsign: cleanUsername,
-      email: '$cleanUsername@borderguard.mil',
+      email: '$cleanUsername@eventguard.mil',
       role: role.trim(),
       clearanceLevel: clearanceLevel.trim(),
       avatarUrl: null,
@@ -201,7 +201,7 @@ class GitHubAuthService {
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
     try {
       final request = await client.getUrl(Uri.parse('https://api.github.com/user'));
-      request.headers.set('User-Agent', 'BorderGuard-AI-Defense/1.0');
+      request.headers.set('User-Agent', 'EventGuard-AI-Defense/1.0');
       request.headers.set('Accept', 'application/vnd.github.v3+json');
       request.headers.set('Authorization', 'Bearer $trimmedToken');
 
@@ -240,7 +240,7 @@ class GitHubAuthService {
     try {
       final client = HttpClient()..connectionTimeout = const Duration(seconds: 2);
       final request = await client.getUrl(Uri.parse('https://api.github.com/zen'));
-      request.headers.set('User-Agent', 'BorderGuard-AI-Defense/1.0');
+      request.headers.set('User-Agent', 'EventGuard-AI-Defense/1.0');
       final response = await request.close().timeout(const Duration(seconds: 2));
       return response.statusCode == 200;
     } catch (_) {

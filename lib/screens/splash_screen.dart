@@ -84,7 +84,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'BORDERGUARD AI',
+              'EVENTGUARD AI',
               style: GoogleFonts.inter(
                 fontSize: 32,
                 fontWeight: FontWeight.w900,

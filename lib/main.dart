@@ -23,7 +23,7 @@ void main() async {
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
-    title: 'BorderGuard AI',
+    title: 'EventGuard AI',
   );
 
   windowManager.waitUntilReadyToShow(windowOptions, () async {
@@ -38,19 +38,19 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => MockState()),
       ],
-      child: const BorderGuardApp(),
+      child: const EventGuardApp(),
     ),
   );
 }
 
-class BorderGuardApp extends StatefulWidget {
-  const BorderGuardApp({Key? key}) : super(key: key);
+class EventGuardApp extends StatefulWidget {
+  const EventGuardApp({Key? key}) : super(key: key);
 
   @override
-  State<BorderGuardApp> createState() => _BorderGuardAppState();
+  State<EventGuardApp> createState() => _EventGuardAppState();
 }
 
-class _BorderGuardAppState extends State<BorderGuardApp> with WindowListener, WidgetsBindingObserver {
+class _EventGuardAppState extends State<EventGuardApp> with WindowListener, WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -82,7 +82,7 @@ class _BorderGuardAppState extends State<BorderGuardApp> with WindowListener, Wi
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'BorderGuard AI',
+      title: 'EventGuard AI',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       initialRoute: '/splash',
