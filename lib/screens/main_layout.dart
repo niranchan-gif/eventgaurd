@@ -23,9 +23,9 @@ class _MainLayoutState extends State<MainLayout> {
   ];
 
   final List<String> _titles = const [
-    'Tactical Command & Operations (C2)',
-    'Live AI Surveillance & Neural Grid',
-    'Perimeter Radar & Tactical Deployment',
+    'Event Command & Operations (HQ)',
+    'Live AI Monitoring & Neural Grid',
+    'Perimeter Radar & Event Deployment',
     'Threat Intelligence & Incident Response',
   ];
 

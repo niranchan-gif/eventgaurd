@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // TACTICAL DEFENSE COMMAND PALETTE (Anduril / C2 Radar Aesthetic)
-  // Non-blue, non-muddy: Precision Carbon Obsidian, Titanium White & Tactical Amber
+  // EVENT MANAGEMENT COMMAND PALETTE (Anduril / HQ Radar Aesthetic)
+  // Non-blue, non-muddy: Precision Carbon Obsidian, Titanium White & Event Amber
 
   static const Color obsidianBlack = Color(0xFF090A0D);  // Pure, rich, distraction-free obsidian
   static const Color charcoalSurface = Color(0xFF13151A); // Sleek card surface
@@ -15,7 +15,7 @@ class AppTheme {
   static const Color mutedSilver = Color(0xFFA1A8B8);    // Crisp secondary text (clean, legible)
   static const Color disabledGrey = Color(0xFF64748B);
 
-  static const Color tacticalAmber = Color(0xFFF59E0B);  // Energetic tactical amber accent
+  static const Color uiAmber = Color(0xFFF59E0B);  // Energetic event amber accent
   static const Color alertRed = Color(0xFFEF4444);       // High-vis alert red
   static const Color radarGreen = Color(0xFF10B981);     // Crisp neon radar green
 
@@ -23,7 +23,7 @@ class AppTheme {
   static const Color darkOlive = obsidianBlack;
   static const Color deepGreen = charcoalSurface;
   static const Color cream = titaniumWhite;
-  static const Color orange = tacticalAmber;
+  static const Color orange = uiAmber;
   static const Color darkTeal = obsidianBlack;
   static const Color sage = charcoalSurface;
   static const Color burgundy = alertRed;
@@ -34,8 +34,8 @@ class AppTheme {
   static const Color surfaceLight = charcoalElevated;
   static const Color surfaceDark = Color(0xFF0E1014);
 
-  static const Color primary = tacticalAmber;
-  static const Color accent = tacticalAmber;
+  static const Color primary = uiAmber;
+  static const Color accent = uiAmber;
   static const Color secondary = titaniumWhite;
 
   static const Color textLight = titaniumWhite;
@@ -47,7 +47,7 @@ class AppTheme {
   static const Color borderSubtle = subtleBorder;
 
   static const Color critical = alertRed;
-  static const Color warning = tacticalAmber;
+  static const Color warning = uiAmber;
   static const Color safe = radarGreen;
   static const Color info = titaniumWhite;
 
@@ -56,7 +56,7 @@ class AppTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: background,
       colorScheme: const ColorScheme.dark(
-        primary: tacticalAmber,
+        primary: uiAmber,
         secondary: titaniumWhite,
         surface: charcoalSurface,
         error: alertRed,
@@ -76,7 +76,7 @@ class AppTheme {
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: tacticalAmber,
+          backgroundColor: uiAmber,
           foregroundColor: obsidianBlack,
           textStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.5),
           elevation: 0,
@@ -87,7 +87,7 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: tacticalAmber,
+          foregroundColor: uiAmber,
           textStyle: GoogleFonts.inter(fontWeight: FontWeight.w700),
         ),
       ),
@@ -118,7 +118,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: tacticalAmber, width: 1.8),
+          borderSide: const BorderSide(color: uiAmber, width: 1.8),
         ),
       ),
 
@@ -153,7 +153,7 @@ class AppTheme {
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return tacticalAmber;
+            return uiAmber;
           }
           return Colors.transparent;
         }),

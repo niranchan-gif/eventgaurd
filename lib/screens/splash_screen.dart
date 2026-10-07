@@ -12,7 +12,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  String _bootStatus = 'INITIALIZING DEFENSE SENSOR GRID & AI PIPELINES...';
+  String _bootStatus = 'INITIALIZING MANAGEMENT SENSOR GRID & AI PIPELINES...';
 
   @override
   void initState() {
@@ -29,20 +29,20 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     }
 
-    // Step 2: Auto-Authentication of Defense Commander
+    // Step 2: Auto-Authentication of Management Manager
     await Future.delayed(const Duration(milliseconds: 700));
     if (mounted) {
       context.read<MockState>().instantCommanderLogin();
       setState(() {
-        _bootStatus = 'AUTOMATIC BIOMETRIC CLEARANCE: COMMANDER SARAH VANCE...';
+        _bootStatus = 'AUTOMATIC BIOMETRIC CLEARANCE: MANAGER SARAH VANCE...';
       });
     }
 
-    // Step 3: Launch Tactical Operations Center
+    // Step 3: Launch Event Operations Center
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
       setState(() {
-        _bootStatus = 'SYSTEM INITIALIZED • DEPLOYING TACTICAL OPERATIONS CENTER';
+        _bootStatus = 'SYSTEM INITIALIZED • DEPLOYING EVENT OPERATIONS CENTER';
       });
     }
 
@@ -65,10 +65,10 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 140,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.6), width: 2),
+                border: Border.all(color: AppTheme.uiAmber.withValues(alpha: 0.6), width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.tacticalAmber.withValues(alpha: 0.3),
+                    color: AppTheme.uiAmber.withValues(alpha: 0.3),
                     blurRadius: 36,
                     spreadRadius: 4,
                   ),
@@ -101,8 +101,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 border: Border.all(color: AppTheme.hairlineBorder),
               ),
               child: Text(
-                'TACTICAL PERIMETER DEFENSE & INTELLIGENCE SUITE',
-                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, letterSpacing: 1.0),
+                'EVENT PERIMETER MANAGEMENT & INTELLIGENCE SUITE',
+                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.uiAmber, letterSpacing: 1.0),
               ),
             ),
             const SizedBox(height: 48),
@@ -110,14 +110,14 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 30,
               height: 30,
               child: CircularProgressIndicator(
-                color: AppTheme.tacticalAmber,
+                color: AppTheme.uiAmber,
                 strokeWidth: 2.5,
               ),
             ),
             const SizedBox(height: 18),
             Text(
               _bootStatus,
-              style: GoogleFonts.inter(color: AppTheme.tacticalAmber, fontSize: 11, letterSpacing: 0.8, fontWeight: FontWeight.w700),
+              style: GoogleFonts.inter(color: AppTheme.uiAmber, fontSize: 11, letterSpacing: 0.8, fontWeight: FontWeight.w700),
             ),
           ],
         ),

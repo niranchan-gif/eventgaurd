@@ -51,9 +51,9 @@ class TopBar extends StatelessWidget {
                     border: Border.all(color: AppTheme.hairlineBorder),
                   ),
                   child: Text(
-                    'TACTICAL C2',
+                    'EVENT HQ',
                     style: GoogleFonts.inter(
-                      color: AppTheme.tacticalAmber,
+                      color: AppTheme.uiAmber,
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.6,
@@ -143,7 +143,7 @@ class TopBar extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(3),
                                   border: Border.all(color: const Color(0xFF2EA44F).withValues(alpha: 0.6)),
                                 ),
-                                child: Text('DEFENSE C2', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: const Color(0xFF2EA44F))),
+                                child: Text('MANAGEMENT HQ', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: const Color(0xFF2EA44F))),
                               ),
                             ],
                           ],
@@ -151,7 +151,7 @@ class TopBar extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(user.email, style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11)),
                         const SizedBox(height: 4),
-                        Text(user.clearanceLevel, style: GoogleFonts.inter(color: AppTheme.tacticalAmber, fontSize: 9, fontWeight: FontWeight.bold)),
+                        Text(user.clearanceLevel, style: GoogleFonts.inter(color: AppTheme.uiAmber, fontSize: 9, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -177,7 +177,7 @@ class TopBar extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: user.provider == AuthProvider.github ? const Color(0xFF2EA44F) : AppTheme.tacticalAmber,
+                        color: user.provider == AuthProvider.github ? const Color(0xFF2EA44F) : AppTheme.uiAmber,
                         width: 1.5,
                       ),
                     ),
@@ -187,7 +187,7 @@ class TopBar extends StatelessWidget {
                       child: Text(
                         user.initials,
                         style: GoogleFonts.inter(
-                          color: user.provider == AuthProvider.github ? const Color(0xFF2EA44F) : AppTheme.tacticalAmber,
+                          color: user.provider == AuthProvider.github ? const Color(0xFF2EA44F) : AppTheme.uiAmber,
                           fontWeight: FontWeight.bold,
                           fontSize: 10,
                         ),
@@ -310,7 +310,7 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
             Icon(
               widget.icon,
               size: 20,
-              color: _isHovered ? AppTheme.tacticalAmber : AppTheme.titaniumWhite,
+              color: _isHovered ? AppTheme.uiAmber : AppTheme.titaniumWhite,
             ),
             if (widget.badgeCount > 0)
               Positioned(
@@ -319,7 +319,7 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppTheme.tacticalAmber,
+                    color: AppTheme.uiAmber,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -368,7 +368,7 @@ class Sidebar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 18),
-          // Tactical Logo Header with Official EventGuard AI Emblem
+          // Event Logo Header with Official EventGuard AI Emblem
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -378,10 +378,10 @@ class Sidebar extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.8), width: 1.5),
+                    border: Border.all(color: AppTheme.uiAmber.withValues(alpha: 0.8), width: 1.5),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.tacticalAmber.withValues(alpha: 0.25),
+                        color: AppTheme.uiAmber.withValues(alpha: 0.25),
                         blurRadius: 14,
                         offset: const Offset(0, 2),
                       ),
@@ -414,8 +414,8 @@ class Sidebar extends StatelessWidget {
                           border: Border.all(color: AppTheme.hairlineBorder),
                         ),
                         child: Text(
-                          'C2 DEFENSE GRID',
-                          style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, letterSpacing: 0.8),
+                          'HQ MANAGEMENT GRID',
+                          style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: AppTheme.uiAmber, letterSpacing: 0.8),
                         ),
                       ),
                     ],
@@ -426,7 +426,7 @@ class Sidebar extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Divider(color: AppTheme.hairlineBorder, height: 1),
-          // Streamlined Tactical Nav items
+          // Streamlined Event Nav items
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -440,7 +440,7 @@ class Sidebar extends StatelessWidget {
                 ),
                 _SidebarNavItem(
                   index: 1,
-                  title: 'Live AI Surveillance',
+                  title: 'Live AI Monitoring',
                   icon: Icons.videocam_rounded,
                   isSelected: selectedIndex == 1,
                   onTap: () => onItemSelected(1),
@@ -472,7 +472,7 @@ class Sidebar extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 16,
-                  backgroundColor: user.provider == AuthProvider.github ? const Color(0xFF2EA44F) : AppTheme.tacticalAmber,
+                  backgroundColor: user.provider == AuthProvider.github ? const Color(0xFF2EA44F) : AppTheme.uiAmber,
                   child: Text(
                     user.initials,
                     style: const TextStyle(color: AppTheme.obsidianBlack, fontSize: 11, fontWeight: FontWeight.w900),
@@ -571,7 +571,7 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isSelected
-                    ? AppTheme.tacticalAmber.withValues(alpha: 0.45)
+                    ? AppTheme.uiAmber.withValues(alpha: 0.45)
                     : (_isHovered ? AppTheme.hairlineBorder : Colors.transparent),
                 width: 1,
               ),
@@ -583,7 +583,7 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
                   width: 3,
                   height: 16,
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.tacticalAmber : Colors.transparent,
+                    color: isSelected ? AppTheme.uiAmber : Colors.transparent,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -591,7 +591,7 @@ class _SidebarNavItemState extends State<_SidebarNavItem> {
                 Icon(
                   widget.icon,
                   color: isSelected
-                      ? AppTheme.tacticalAmber
+                      ? AppTheme.uiAmber
                       : (_isHovered ? AppTheme.titaniumWhite : AppTheme.mutedSilver),
                   size: 18,
                 ),

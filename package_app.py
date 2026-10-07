@@ -116,7 +116,7 @@ echo ================================================================
 echo   SETUP COMPLETED SUCCESSFULLY!
 echo ================================================================
 echo You are all set! You can now start EventGuard AI by double-clicking:
-echo   START_BORDERGUARD_AI.bat
+echo   START_EVENTGUARD_AI.bat
 echo ================================================================
 echo.
 pause
@@ -124,12 +124,12 @@ pause
     with open(os.path.join(dist_dir, "SETUP_DEPENDENCIES.bat"), "w", encoding="utf-8") as f:
         f.write(setup_bat)
 
-    # Create START_BORDERGUARD_AI.bat
+    # Create START_EVENTGUARD_AI.bat
     launcher_bat = r"""@echo off
-title EventGuard AI - Tactical Surveillance System
+title EventGuard AI - Event Monitoring System
 color 0B
 echo ================================================================
-echo                EVENTGUARD AI TACTICAL SUITE
+echo                EVENTGUARD AI EVENT SUITE
 echo ================================================================
 echo.
 cd /d "%~dp0"
@@ -152,7 +152,7 @@ echo [LAUNCHING] Starting EventGuard AI Application...
 start "" "%~dp0eventguard_ai.exe"
 exit
 """
-    with open(os.path.join(dist_dir, "START_BORDERGUARD_AI.bat"), "w", encoding="utf-8") as f:
+    with open(os.path.join(dist_dir, "START_EVENTGUARD_AI.bat"), "w", encoding="utf-8") as f:
         f.write(launcher_bat)
 
     # Create start_backend_debug.bat
@@ -160,7 +160,7 @@ exit
 title EventGuard AI - Python Backend Debug Console
 cd /d "%~dp0"
 echo ========================================================
-echo   EventGuard AI Multi-Node Tactical Video Backend
+echo   EventGuard AI Multi-Node Event Video Backend
 echo   (Debug Console Mode)
 echo ========================================================
 if exist "venv\Scripts\python.exe" (
@@ -175,16 +175,16 @@ pause
 
     # Create README_HOW_TO_RUN.txt
     readme_txt = """================================================================
-          EVENTGUARD AI - TACTICAL MULTI-NODE SURVEILLANCE
+          EVENTGUARD AI - EVENT MULTI-NODE MONITORING
 ================================================================
 
-EventGuard AI is an intelligent defense and border monitoring
+EventGuard AI is an intelligent management and border monitoring
 workstation powered by Flutter and YOLOv11 Deep Learning.
 
 FEATURES:
-- Dual-node multi-camera tactical live streaming
+- Dual-node multi-camera event live streaming
 - Real-time intruder, personnel, and vehicle tracking
-- Virtual tripwire intrusion perimeter detection
+- Virtual tripwire incident perimeter detection
 - Automated License Plate Recognition (ANPR)
 - Facial Biometric scanning and detection
 - Low-latency DirectShow camera acceleration
@@ -206,7 +206,7 @@ STEP 1 (First Time Only):
    install PyTorch, YOLOv11, OpenCV, Flask, etc.
 
 STEP 2:
-   Double-click:  START_BORDERGUARD_AI.bat
+   Double-click:  START_EVENTGUARD_AI.bat
    (or double-click eventguard_ai.exe directly)
    The application will start immediately and automatically manage
    the AI backend!

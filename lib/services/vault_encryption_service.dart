@@ -5,8 +5,8 @@ import 'package:crypto/crypto.dart';
 
 class VaultEncryptionService {
   static const String _magicHeader = 'BG_DEFENSE_VAULT_V1::';
-  // 256-bit military master vault key
-  static const String _masterSecret = 'BG-DEFENSE-C2-CLASSIFIED-VAULT-KEY-99482-2026';
+  // 256-bit event master vault key
+  static const String _masterSecret = 'BG-MANAGEMENT-HQ-CLASSIFIED-VAULT-KEY-99482-2026';
 
   static List<int> get _derivedKey {
     return sha256.convert(utf8.encode(_masterSecret)).bytes;
@@ -26,7 +26,7 @@ class VaultEncryptionService {
     return base64UrlEncode(values);
   }
 
-  /// Encrypts plaintext string into an authenticated military encrypted vault payload
+  /// Encrypts plaintext string into an authenticated event encrypted vault payload
   static String encryptString(String plaintext) {
     final random = Random.secure();
     final salt = Uint8List.fromList(List<int>.generate(16, (_) => random.nextInt(256)));

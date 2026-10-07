@@ -65,7 +65,7 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
                       decoration: InputDecoration(
                         hintText: 'Search camera node ID, sector, coordinates...',
                         hintStyle: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 13),
-                        prefixIcon: const Icon(Icons.search, color: AppTheme.tacticalAmber, size: 18),
+                        prefixIcon: const Icon(Icons.search, color: AppTheme.uiAmber, size: 18),
                         suffixIcon: query.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(Icons.clear, size: 16, color: AppTheme.mutedSilver),
@@ -80,7 +80,7 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
                         fillColor: AppTheme.obsidianBlack,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.hairlineBorder)),
                         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.hairlineBorder)),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.tacticalAmber, width: 1.5)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.uiAmber, width: 1.5)),
                       ),
                     ),
                   ),
@@ -99,7 +99,7 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
                       value: _selectedZone,
                       dropdownColor: AppTheme.charcoalElevated,
                       style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13, fontWeight: FontWeight.bold),
-                      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.tacticalAmber),
+                      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.uiAmber),
                       items: [
                         'All Zones',
                         'Sector 01',
@@ -169,7 +169,7 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
                             });
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.tacticalAmber,
+                            backgroundColor: AppTheme.uiAmber,
                             foregroundColor: AppTheme.obsidianBlack,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
@@ -197,7 +197,7 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
                         ),
                         itemCount: filteredCameras.length,
                         itemBuilder: (context, index) {
-                          return _TacticalCameraCard(
+                          return _EventCameraCard(
                             camera: filteredCameras[index],
                             onTap: () => _showCameraModal(context, filteredCameras[index]),
                           );
@@ -231,10 +231,10 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
               titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
               title: Row(
                 children: [
-                  const Icon(Icons.sensors, color: AppTheme.tacticalAmber, size: 22),
+                  const Icon(Icons.sensors, color: AppTheme.uiAmber, size: 22),
                   const SizedBox(width: 10),
                   Text(
-                    'Surveillance Feed Inspector: ${camera.id}',
+                    'Monitoring Feed Inspector: ${camera.id}',
                     style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontWeight: FontWeight.w800, fontSize: 17),
                   ),
                   const Spacer(),
@@ -307,7 +307,7 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (isCam1) ...[
-                                Text('AI DETECTION ENGINE MODE', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, fontSize: 11, letterSpacing: 0.6)),
+                                Text('AI DETECTION ENGINE MODE', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.uiAmber, fontSize: 11, letterSpacing: 0.6)),
                                 const SizedBox(height: 8),
                                 Wrap(
                                   spacing: 6,
@@ -322,7 +322,7 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
                                   ],
                                 ),
                                 const Divider(color: AppTheme.hairlineBorder, height: 24),
-                                Text('LIVE AI INFERENCE TELEMETRY', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, fontSize: 11, letterSpacing: 0.6)),
+                                Text('LIVE AI INFERENCE TELEMETRY', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.uiAmber, fontSize: 11, letterSpacing: 0.6)),
                                 const SizedBox(height: 10),
                                 _buildModalRow('Persons Tracked', '${currentState.cam1Counts['person'] ?? 0}'),
                                 _buildModalRow('Vehicles Tracked', '${currentState.cam1Counts['vehicle'] ?? 0}'),
@@ -335,10 +335,10 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
                                 ),
                                 const Divider(color: AppTheme.hairlineBorder, height: 24),
                               ],
-                              Text('HARDWARE SPECIFICATIONS', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, fontSize: 11, letterSpacing: 0.6)),
+                              Text('HARDWARE SPECIFICATIONS', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.uiAmber, fontSize: 11, letterSpacing: 0.6)),
                               const SizedBox(height: 10),
                               _buildModalRow('Sensor Location', camera.location),
-                              _buildModalRow('Tactical Sector', camera.zone),
+                              _buildModalRow('Event Sector', camera.zone),
                               _buildModalRow('Signal Telemetry', camera.signal),
                               _buildModalRow('Operational Status', camera.status.name.toUpperCase()),
                               _buildModalRow('Active Threat State', camera.currentDetection),
@@ -354,7 +354,7 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
               actions: [
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.tacticalAmber,
+                    backgroundColor: AppTheme.uiAmber,
                     foregroundColor: AppTheme.obsidianBlack,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -382,10 +382,10 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.tacticalAmber : AppTheme.charcoalSurface,
+            color: isSelected ? AppTheme.uiAmber : AppTheme.charcoalSurface,
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: isSelected ? AppTheme.tacticalAmber : AppTheme.hairlineBorder,
+              color: isSelected ? AppTheme.uiAmber : AppTheme.hairlineBorder,
             ),
           ),
           child: Text(
@@ -422,17 +422,17 @@ class _LiveSurveillanceScreenState extends State<LiveSurveillanceScreen> {
   }
 }
 
-class _TacticalCameraCard extends StatefulWidget {
+class _EventCameraCard extends StatefulWidget {
   final Camera camera;
   final VoidCallback onTap;
 
-  const _TacticalCameraCard({Key? key, required this.camera, required this.onTap}) : super(key: key);
+  const _EventCameraCard({Key? key, required this.camera, required this.onTap}) : super(key: key);
 
   @override
-  State<_TacticalCameraCard> createState() => _TacticalCameraCardState();
+  State<_EventCameraCard> createState() => _EventCameraCardState();
 }
 
-class _TacticalCameraCardState extends State<_TacticalCameraCard> {
+class _EventCameraCardState extends State<_EventCameraCard> {
   bool _isHovered = false;
 
   @override
@@ -459,14 +459,14 @@ class _TacticalCameraCardState extends State<_TacticalCameraCard> {
               border: Border.all(
                 color: hasThreat
                     ? AppTheme.alertRed
-                    : (_isHovered ? AppTheme.tacticalAmber : AppTheme.hairlineBorder),
+                    : (_isHovered ? AppTheme.uiAmber : AppTheme.hairlineBorder),
                 width: hasThreat || _isHovered ? 1.5 : 1.0,
               ),
               boxShadow: [
                 BoxShadow(
                   color: hasThreat
                       ? AppTheme.alertRed.withValues(alpha: 0.25)
-                      : (_isHovered ? AppTheme.tacticalAmber.withValues(alpha: 0.15) : Colors.black45),
+                      : (_isHovered ? AppTheme.uiAmber.withValues(alpha: 0.15) : Colors.black45),
                   blurRadius: _isHovered ? 16 : 8,
                   offset: const Offset(0, 4),
                 ),
@@ -501,7 +501,7 @@ class _TacticalCameraCardState extends State<_TacticalCameraCard> {
                             Text(
                               camera.id,
                               style: GoogleFonts.inter(
-                                color: AppTheme.tacticalAmber,
+                                color: AppTheme.uiAmber,
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
@@ -639,7 +639,7 @@ class _TacticalCameraCardState extends State<_TacticalCameraCard> {
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: AppTheme.hairlineBorder),
                           ),
-                          child: const Icon(Icons.fullscreen, color: AppTheme.tacticalAmber, size: 16),
+                          child: const Icon(Icons.fullscreen, color: AppTheme.uiAmber, size: 16),
                         ),
                       ],
                     ),

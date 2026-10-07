@@ -49,7 +49,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
               ),
               title: Row(
                 children: [
-                  const Icon(Icons.send_rounded, color: AppTheme.tacticalAmber, size: 22),
+                  const Icon(Icons.send_rounded, color: AppTheme.uiAmber, size: 22),
                   const SizedBox(width: 10),
                   Text(
                     'Dispatch Quick Reaction Team',
@@ -64,7 +64,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Authorize immediate tactical ground patrol deployment to sector coordinates.',
+                      'Authorize immediate event ground patrol deployment to sector coordinates.',
                       style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
                     ),
                     const SizedBox(height: 18),
@@ -131,7 +131,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                 ),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.tacticalAmber,
+                    backgroundColor: AppTheme.uiAmber,
                     foregroundColor: AppTheme.obsidianBlack,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -167,7 +167,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
       color: AppTheme.obsidianBlack,
       child: Row(
         children: [
-          // Tactical Map Canvas with animated radar sweep
+          // Event Map Canvas with animated radar sweep
           Expanded(
             flex: 3,
             child: Stack(
@@ -176,7 +176,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   animation: _radarController,
                   builder: (context, child) {
                     return CustomPaint(
-                      painter: _TacticalRadarPainter(
+                      painter: _EventRadarPainter(
                         animationProgress: _radarController.value,
                         hasThreat: hasThreat,
                         isCameraOnline: state.isCameraOn && state.isBackendConnected,
@@ -209,17 +209,17 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                               width: 8,
                               height: 8,
                               decoration: const BoxDecoration(
-                                color: AppTheme.tacticalAmber,
+                                color: AppTheme.uiAmber,
                                 shape: BoxShape.circle,
                               ),
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'TACTICAL RADAR TELEMETRY',
+                              'EVENT RADAR TELEMETRY',
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 11,
-                                color: AppTheme.tacticalAmber,
+                                color: AppTheme.uiAmber,
                                 letterSpacing: 0.6,
                               ),
                             ),
@@ -227,9 +227,9 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                         ),
                         const SizedBox(height: 12),
                         _buildLegendItem(AppTheme.radarGreen, 'Sector 01 CAM-01 Sensor Node'),
-                        _buildLegendItem(AppTheme.titaniumWhite, 'Primary Perimeter Defense Line'),
+                        _buildLegendItem(AppTheme.titaniumWhite, 'Primary Perimeter Management Line'),
                         _buildLegendItem(hasThreat ? AppTheme.alertRed : AppTheme.mutedSilver, hasThreat ? 'Active Incursion Signal Detected' : 'Perimeter Clear (No Breach)'),
-                        _buildLegendItem(AppTheme.tacticalAmber, 'Active Radar Sweep Vector'),
+                        _buildLegendItem(AppTheme.uiAmber, 'Active Radar Sweep Vector'),
                       ],
                     ),
                   ),
@@ -253,7 +253,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   children: [
                     Text(
                       'SECTOR TELEMETRY',
-                      style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.tacticalAmber, fontSize: 11, letterSpacing: 0.8),
+                      style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.uiAmber, fontSize: 11, letterSpacing: 0.8),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -270,7 +270,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text('Sector 01 Tactical Zone', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.titaniumWhite)),
+                Text('Sector 01 Event Zone', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.titaniumWhite)),
                 const SizedBox(height: 4),
                 Text('MGRS: 43R EN 2819 1485 • Laptop Post', style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11)),
                 const SizedBox(height: 20),
@@ -299,7 +299,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.tacticalAmber.withValues(alpha: _isDispatchHovered ? 0.4 : 0.2),
+                            color: AppTheme.uiAmber.withValues(alpha: _isDispatchHovered ? 0.4 : 0.2),
                             blurRadius: _isDispatchHovered ? 16 : 8,
                             offset: const Offset(0, 4),
                           ),
@@ -307,7 +307,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                       ),
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.tacticalAmber,
+                          backgroundColor: AppTheme.uiAmber,
                           foregroundColor: AppTheme.obsidianBlack,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -370,12 +370,12 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
   }
 }
 
-class _TacticalRadarPainter extends CustomPainter {
+class _EventRadarPainter extends CustomPainter {
   final double animationProgress;
   final bool hasThreat;
   final bool isCameraOnline;
 
-  _TacticalRadarPainter({
+  _EventRadarPainter({
     required this.animationProgress,
     required this.hasThreat,
     required this.isCameraOnline,
@@ -452,11 +452,11 @@ class _TacticalRadarPainter extends CustomPainter {
     );
 
     final sweepLinePaint = Paint()
-      ..color = AppTheme.tacticalAmber.withValues(alpha: 0.7)
+      ..color = AppTheme.uiAmber.withValues(alpha: 0.7)
       ..strokeWidth = 1.6;
     canvas.drawLine(radarCenter, sweepEnd, sweepLinePaint);
 
-    // Active Threat Beacon (Only painted if an actual threat/intrusion is active)
+    // Active Threat Beacon (Only painted if an actual threat/incident is active)
     if (hasThreat) {
       final threatCenter = Offset(size.width * 0.48, size.height * 0.36);
       double threatPulse = (animationProgress * 30.0);
@@ -470,7 +470,7 @@ class _TacticalRadarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _TacticalRadarPainter oldDelegate) {
+  bool shouldRepaint(covariant _EventRadarPainter oldDelegate) {
     return oldDelegate.animationProgress != animationProgress ||
         oldDelegate.hasThreat != hasThreat ||
         oldDelegate.isCameraOnline != isCameraOnline;

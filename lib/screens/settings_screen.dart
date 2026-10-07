@@ -30,7 +30,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Manage border defense telemetry, AI detection sensitivity, escalation protocols, and telemetry feeds',
+                      'Manage border management telemetry, AI detection sensitivity, escalation protocols, and telemetry feeds',
                       style: GoogleFonts.inter(fontSize: 13, color: AppTheme.mutedSilver),
                     ),
                   ],
@@ -48,7 +48,7 @@ class SettingsScreen extends StatelessWidget {
                         state.resetSettingsToDefault();
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Preferences restored to tactical factory defaults.'),
+                            content: Text('Preferences restored to event factory defaults.'),
                             backgroundColor: AppTheme.charcoalElevated,
                             duration: Duration(seconds: 2),
                           ),
@@ -60,7 +60,7 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(width: 10),
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.tacticalAmber,
+                        backgroundColor: AppTheme.uiAmber,
                         foregroundColor: AppTheme.obsidianBlack,
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -91,8 +91,8 @@ class SettingsScreen extends StatelessWidget {
 
             _buildSettingsSection('OPERATIONAL ENVIRONMENT', [
               _buildSwitchTile(
-                title: 'Tactical High-Contrast Dark Mode',
-                subtitle: 'Optimized OLED contrast for low-light C2 command center stations',
+                title: 'Event High-Contrast Dark Mode',
+                subtitle: 'Optimized OLED contrast for low-light HQ command center stations',
                 value: state.highContrastMode,
                 onChanged: (v) => state.toggleHighContrast(v),
               ),
@@ -106,8 +106,8 @@ class SettingsScreen extends StatelessWidget {
                   title: 'Select Operational Language Protocol',
                   currentValue: state.languageProtocol,
                   options: [
-                    'English (Military Nomenclature)',
-                    'English (Standard Civil Defense)',
+                    'English (Event Nomenclature)',
+                    'English (Standard Civil Management)',
                     'Hindi (Armed Forces Standard)',
                     'NATO Multilingual Standard',
                   ],
@@ -124,7 +124,7 @@ class SettingsScreen extends StatelessWidget {
                   title: 'Select Geographic Coordinates Format',
                   currentValue: state.coordinatesStandard,
                   options: [
-                    'WGS 84 / MGRS (Military Grid Reference)',
+                    'WGS 84 / MGRS (Event Grid Reference)',
                     'Universal Transverse Mercator (UTM)',
                     'Decimal Degrees (Lat / Long GPS)',
                     'Degrees Minutes Seconds (DMS)',
@@ -135,7 +135,7 @@ class SettingsScreen extends StatelessWidget {
             ]),
             const SizedBox(height: 20),
 
-            _buildSettingsSection('AI INTRUSION SENSITIVITY & COMPUTER VISION', [
+            _buildSettingsSection('AI INCIDENT SENSITIVITY & COMPUTER VISION', [
               _buildSliderTile(
                 title: 'Human Detection Sensitivity Threshold',
                 subtitle: 'Controls YOLO confidence threshold for raising automated perimeter alerts',
@@ -166,7 +166,7 @@ class SettingsScreen extends StatelessWidget {
             _buildSettingsSection('SECURITY & ESCALATION PROTOCOLS', [
               _buildSwitchTile(
                 title: 'Audible Siren upon Level 1 Perimeter Breach',
-                subtitle: 'Trigger hardware audio alarm when intrusion is detected in Sector 01',
+                subtitle: 'Trigger hardware audio alarm when incident is detected in Sector 01',
                 value: state.audibleSiren,
                 onChanged: (v) => state.toggleAudibleSiren(v),
               ),
@@ -188,7 +188,7 @@ class SettingsScreen extends StatelessWidget {
             _buildSettingsSection('HARDWARE TERMINAL & TELEMETRY', [
               _buildInfoTile('Active Physical Sensor', 'CAM-01 (Laptop Webcam) • 640x480 Direct Ingestion'),
               _buildInfoTile('Terminal Deployment State', 'Station 01 • Active Encrypted TLS Link'),
-              _buildInfoTile('Build Version', 'EventGuard AI Tactical Suite v2.4.1 (SIH Special Edition)'),
+              _buildInfoTile('Build Version', 'EventGuard AI Event Suite v2.4.1 (SIH Special Edition)'),
             ]),
           ],
         ),
@@ -213,7 +213,7 @@ class SettingsScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Text(
               title,
-              style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.tacticalAmber, fontSize: 11, letterSpacing: 0.8),
+              style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.uiAmber, fontSize: 11, letterSpacing: 0.8),
             ),
           ),
           const Divider(height: 1, color: AppTheme.hairlineBorder),
@@ -234,8 +234,8 @@ class SettingsScreen extends StatelessWidget {
       subtitle: Text(subtitle, style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11)),
       value: value,
       onChanged: onChanged,
-      activeThumbColor: AppTheme.tacticalAmber,
-      activeTrackColor: AppTheme.tacticalAmber.withValues(alpha: 0.4),
+      activeThumbColor: AppTheme.uiAmber,
+      activeTrackColor: AppTheme.uiAmber.withValues(alpha: 0.4),
       inactiveThumbColor: AppTheme.mutedSilver,
       inactiveTrackColor: AppTheme.obsidianBlack,
     );
@@ -250,7 +250,7 @@ class SettingsScreen extends StatelessWidget {
   }) {
     return ListTile(
       onTap: onTap,
-      leading: Icon(icon, color: AppTheme.tacticalAmber, size: 20),
+      leading: Icon(icon, color: AppTheme.uiAmber, size: 20),
       title: Text(title, style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13, fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle, style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11)),
       trailing: const Icon(Icons.chevron_right, color: AppTheme.mutedSilver, size: 20),
@@ -292,11 +292,11 @@ class SettingsScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppTheme.obsidianBlack,
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppTheme.tacticalAmber),
+                  border: Border.all(color: AppTheme.uiAmber),
                 ),
                 child: Text(
                   '${(value * 100).toInt()}% CONFIDENCE',
-                  style: GoogleFonts.inter(color: AppTheme.tacticalAmber, fontWeight: FontWeight.w800, fontSize: 11),
+                  style: GoogleFonts.inter(color: AppTheme.uiAmber, fontWeight: FontWeight.w800, fontSize: 11),
                 ),
               ),
             ],
@@ -304,10 +304,10 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 12),
           SliderTheme(
             data: SliderThemeData(
-              activeTrackColor: AppTheme.tacticalAmber,
-              thumbColor: AppTheme.tacticalAmber,
+              activeTrackColor: AppTheme.uiAmber,
+              thumbColor: AppTheme.uiAmber,
               inactiveTrackColor: AppTheme.obsidianBlack,
-              overlayColor: AppTheme.tacticalAmber.withValues(alpha: 0.2),
+              overlayColor: AppTheme.uiAmber.withValues(alpha: 0.2),
               trackHeight: 4,
             ),
             child: Slider(
@@ -347,8 +347,8 @@ class SettingsScreen extends StatelessWidget {
               return ListTile(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 tileColor: isSelected ? AppTheme.obsidianBlack : null,
-                title: Text(opt, style: GoogleFonts.inter(color: isSelected ? AppTheme.tacticalAmber : AppTheme.titaniumWhite, fontSize: 13, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-                trailing: isSelected ? const Icon(Icons.check, color: AppTheme.tacticalAmber, size: 18) : null,
+                title: Text(opt, style: GoogleFonts.inter(color: isSelected ? AppTheme.uiAmber : AppTheme.titaniumWhite, fontSize: 13, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                trailing: isSelected ? const Icon(Icons.check, color: AppTheme.uiAmber, size: 18) : null,
                 onTap: () {
                   onSelected(opt);
                   Navigator.pop(ctx);

@@ -25,11 +25,11 @@ while True:
         cx, cy = int((x1+x2)/2), int((y1+y2)/2)
 
         if check_intrusion(cx, cy):
-            cv2.putText(annotated, "INTRUSION!", (cx, cy),
+            cv2.putText(annotated, "INCIDENT!", (cx, cy),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,0,255), 3)
 
     cv2.polylines(annotated, [np.array(virtual_fence, np.int32)], True, (255,0,0), 2)
-    cv2.imshow("Virtual Fence Intrusion", annotated)
+    cv2.imshow("Virtual Fence Incident", annotated)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

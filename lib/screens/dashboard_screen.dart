@@ -68,11 +68,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Tactical Command & Sector Header
+            // 1. Event Command & Sector Header
             _buildMilitaryHeader(state),
             const SizedBox(height: 20),
 
-            // 2. 4-Card Tactical Readiness Deck
+            // 2. 4-Card Event Readiness Deck
             _buildReadinessDeck(state),
             const SizedBox(height: 20),
 
@@ -93,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Left Column (Surveillance & Waveform)
+                    // Left Column (Monitoring & Waveform)
                     Expanded(
                       flex: 6,
                       child: _buildSurveillanceColumn(state, primaryCam),
@@ -114,7 +114,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // --- 1. Military Header Bar ---
+  // --- 1. Event Header Bar ---
   Widget _buildMilitaryHeader(MockState state) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -122,15 +122,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         final titleAndStatus = Row(
           children: [
-            // Left military badge & mission status
+            // Left event badge & mission status
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppTheme.obsidianBlack,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.7)),
+                border: Border.all(color: AppTheme.uiAmber.withValues(alpha: 0.7)),
               ),
-              child: const Icon(Icons.shield, color: AppTheme.tacticalAmber, size: 22),
+              child: const Icon(Icons.shield, color: AppTheme.uiAmber, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -142,7 +142,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Flexible(
                         child: Text(
-                          'TACTICAL C2 OPERATIONS ROOM',
+                          'EVENT HQ OPERATIONS ROOM',
                           style: GoogleFonts.inter(
                             fontSize: constraints.maxWidth < 650 ? 15 : 18,
                             fontWeight: FontWeight.w900,
@@ -194,7 +194,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           runSpacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            // Military Clocks
+            // Event Clocks
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -205,7 +205,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.access_time, size: 14, color: AppTheme.tacticalAmber),
+                  const Icon(Icons.access_time, size: 14, color: AppTheme.uiAmber),
                   const SizedBox(width: 8),
                   Text(
                     '${_formatTime(_currentTime)} IST',
@@ -303,7 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // --- 2. 4-Card Tactical Readiness Deck ---
+  // --- 2. 4-Card Event Readiness Deck ---
   Widget _buildReadinessDeck(MockState state) {
     final bool hasBreach = state.intrusionDetected;
     final int personCount = state.cam1Counts['person'] ?? 0;
@@ -319,23 +319,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           spacing: 14,
           runSpacing: 14,
           children: [
-            _buildTacticalKpiCard(
+            _buildEventKpiCard(
               width: cardWidth,
-              title: 'PERIMETER DEFENSE',
+              title: 'PERIMETER MANAGEMENT',
               value: hasBreach ? 'BREACH FLAGGED' : 'ARMED & SECURE',
               subtitle: hasBreach ? 'Sector 01 Incursion Active' : 'Tripwire AI Active • 0 Bypasses',
               icon: hasBreach ? Icons.warning_rounded : Icons.verified_user_rounded,
               color: hasBreach ? AppTheme.alertRed : AppTheme.radarGreen,
             ),
-            _buildTacticalKpiCard(
+            _buildEventKpiCard(
               width: cardWidth,
               title: 'ACTIVE TARGETS IN SECTOR',
               value: totalTargets > 0 ? '$personCount PERSONS • $vehicleCount VEHICLES' : '0 INTRUDERS',
               subtitle: 'YOLOv11 Real-Time Vision Feed',
               icon: Icons.track_changes_rounded,
-              color: totalTargets > 0 ? AppTheme.tacticalAmber : AppTheme.radarGreen,
+              color: totalTargets > 0 ? AppTheme.uiAmber : AppTheme.radarGreen,
             ),
-            _buildTacticalKpiCard(
+            _buildEventKpiCard(
               width: cardWidth,
               title: 'OPTICAL SENSOR CAM-01',
               value: state.isCameraOn ? '${state.cam1Fps.toStringAsFixed(0)} FPS • 1080p' : 'HARDWARE STANDBY',
@@ -343,7 +343,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               icon: state.isCameraOn ? Icons.videocam_rounded : Icons.power_settings_new,
               color: state.isCameraOn ? AppTheme.radarGreen : AppTheme.alertRed,
             ),
-            _buildTacticalKpiCard(
+            _buildEventKpiCard(
               width: cardWidth,
               title: 'NEURAL AI PIPELINE',
               value: state.activeAiMode.toUpperCase(),
@@ -357,7 +357,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTacticalKpiCard({
+  Widget _buildEventKpiCard({
     required double width,
     required String title,
     required String value,
@@ -430,7 +430,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // --- 3. Left Surveillance Viewport & Telemetry Waveform ---
+  // --- 3. Left Monitoring Viewport & Telemetry Waveform ---
   Widget _buildSurveillanceColumn(MockState state, Camera primaryCam) {
     final bool isCam2 = primaryCam.id == 'CAM-002';
     final bool hasBreach = state.intrusionDetected;
@@ -441,7 +441,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Viewport Container with Tactical HUD Styling
+        // Viewport Container with Event HUD Styling
         Container(
           decoration: BoxDecoration(
             color: AppTheme.charcoalSurface,
@@ -449,12 +449,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             border: Border.all(
               color: hasBreach
                   ? AppTheme.alertRed
-                  : AppTheme.tacticalAmber.withValues(alpha: 0.6),
+                  : AppTheme.uiAmber.withValues(alpha: 0.6),
               width: hasBreach ? 2.0 : 1.2,
             ),
             boxShadow: [
               BoxShadow(
-                color: (hasBreach ? AppTheme.alertRed : AppTheme.tacticalAmber).withValues(alpha: 0.15),
+                color: (hasBreach ? AppTheme.alertRed : AppTheme.uiAmber).withValues(alpha: 0.15),
                 blurRadius: 16,
                 spreadRadius: 2,
               ),
@@ -481,7 +481,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         height: 8,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: state.isCameraOn ? (isCam2 ? AppTheme.tacticalAmber : AppTheme.radarGreen) : AppTheme.alertRed,
+                          color: state.isCameraOn ? (isCam2 ? AppTheme.uiAmber : AppTheme.radarGreen) : AppTheme.alertRed,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -514,7 +514,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.tacticalAmber,
+                          backgroundColor: AppTheme.uiAmber,
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -524,7 +524,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 12),
                       // Quick phone source config button
                       IconButton(
-                        icon: const Icon(Icons.usb_rounded, size: 16, color: AppTheme.tacticalAmber),
+                        icon: const Icon(Icons.usb_rounded, size: 16, color: AppTheme.uiAmber),
                         tooltip: 'Configure Phone Camera Source (Direct USB / IP)',
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
@@ -543,7 +543,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: state.isCameraOn ? (isCam2 ? AppTheme.tacticalAmber : AppTheme.radarGreen) : AppTheme.alertRed,
+                            color: state.isCameraOn ? (isCam2 ? AppTheme.uiAmber : AppTheme.radarGreen) : AppTheme.alertRed,
                           ),
                         ),
                       ),
@@ -562,8 +562,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // Video Stream Widget
                       LiveCameraFeed(camera: primaryCam, isModal: true),
 
-                      // Tactical Reticle Corners Overlay
-                      _buildTacticalReticleOverlay(),
+                      // Event Reticle Corners Overlay
+                      _buildEventReticleOverlay(),
 
                       // Top-right Live Target Tags
                       Positioned(
@@ -596,7 +596,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.tacticalAmber,
+                                  color: AppTheme.uiAmber,
                                   borderRadius: BorderRadius.circular(4),
                                   boxShadow: const [
                                     BoxShadow(color: Colors.black54, blurRadius: 6),
@@ -730,16 +730,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           duration: const Duration(milliseconds: 160),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.tacticalAmber : AppTheme.charcoalSurface,
+            color: isSelected ? AppTheme.uiAmber : AppTheme.charcoalSurface,
             borderRadius: BorderRadius.circular(5),
             border: Border.all(
-              color: isSelected ? AppTheme.tacticalAmber : AppTheme.hairlineBorder,
+              color: isSelected ? AppTheme.uiAmber : AppTheme.hairlineBorder,
               width: isSelected ? 1.4 : 1.0,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: AppTheme.tacticalAmber.withValues(alpha: 0.35),
+                      color: AppTheme.uiAmber.withValues(alpha: 0.35),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -794,16 +794,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           duration: const Duration(milliseconds: 140),
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
           decoration: BoxDecoration(
-            color: isSelected ? (camId == 'CAM-002' ? AppTheme.tacticalAmber : AppTheme.radarGreen) : AppTheme.charcoalSurface,
+            color: isSelected ? (camId == 'CAM-002' ? AppTheme.uiAmber : AppTheme.radarGreen) : AppTheme.charcoalSurface,
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
-              color: isSelected ? (camId == 'CAM-002' ? AppTheme.tacticalAmber : AppTheme.radarGreen) : AppTheme.hairlineBorder,
+              color: isSelected ? (camId == 'CAM-002' ? AppTheme.uiAmber : AppTheme.radarGreen) : AppTheme.hairlineBorder,
               width: isSelected ? 1.4 : 1.0,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: (camId == 'CAM-002' ? AppTheme.tacticalAmber : AppTheme.radarGreen).withValues(alpha: 0.35),
+                      color: (camId == 'CAM-002' ? AppTheme.uiAmber : AppTheme.radarGreen).withValues(alpha: 0.35),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -850,11 +850,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           backgroundColor: AppTheme.obsidianBlack,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: AppTheme.tacticalAmber, width: 1.2),
+            side: const BorderSide(color: AppTheme.uiAmber, width: 1.2),
           ),
           title: Row(
             children: [
-              const Icon(Icons.usb_rounded, color: AppTheme.tacticalAmber, size: 20),
+              const Icon(Icons.usb_rounded, color: AppTheme.uiAmber, size: 20),
               const SizedBox(width: 8),
               Text(
                 'PHONE RECON CAMERA SOURCE CONFIG',
@@ -883,13 +883,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: GoogleFonts.jetBrainsMono(fontSize: 12, color: AppTheme.titaniumWhite),
                   decoration: InputDecoration(
                     labelText: 'DEVICE INDEX OR STREAM URL',
-                    labelStyle: GoogleFonts.inter(fontSize: 10, color: AppTheme.tacticalAmber, fontWeight: FontWeight.bold),
+                    labelStyle: GoogleFonts.inter(fontSize: 10, color: AppTheme.uiAmber, fontWeight: FontWeight.bold),
                     hintText: 'e.g. 1 (for USB) or http://192.168.42.129:8080/video',
                     hintStyle: GoogleFonts.inter(fontSize: 11, color: AppTheme.mutedSilver),
                     filled: true,
                     fillColor: AppTheme.charcoalSurface,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: AppTheme.hairlineBorder)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: AppTheme.tacticalAmber)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: AppTheme.uiAmber)),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -914,7 +914,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline, size: 16, color: AppTheme.tacticalAmber),
+                      const Icon(Icons.info_outline, size: 16, color: AppTheme.uiAmber),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -935,7 +935,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.tacticalAmber,
+                backgroundColor: AppTheme.uiAmber,
                 foregroundColor: AppTheme.obsidianBlack,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -977,7 +977,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // Reticle overlay
-  Widget _buildTacticalReticleOverlay() {
+  Widget _buildEventReticleOverlay() {
     return IgnorePointer(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -1010,10 +1010,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       height: 14,
       decoration: BoxDecoration(
         border: Border(
-          top: top ? const BorderSide(color: AppTheme.tacticalAmber, width: 2) : BorderSide.none,
-          bottom: !top ? const BorderSide(color: AppTheme.tacticalAmber, width: 2) : BorderSide.none,
-          left: left ? const BorderSide(color: AppTheme.tacticalAmber, width: 2) : BorderSide.none,
-          right: !left ? const BorderSide(color: AppTheme.tacticalAmber, width: 2) : BorderSide.none,
+          top: top ? const BorderSide(color: AppTheme.uiAmber, width: 2) : BorderSide.none,
+          bottom: !top ? const BorderSide(color: AppTheme.uiAmber, width: 2) : BorderSide.none,
+          left: left ? const BorderSide(color: AppTheme.uiAmber, width: 2) : BorderSide.none,
+          right: !left ? const BorderSide(color: AppTheme.uiAmber, width: 2) : BorderSide.none,
         ),
       ),
     );
@@ -1022,7 +1022,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // Real-Time Waveform Card
   Widget _buildWaveformCard(MockState state) {
     final bool hasBreach = state.intrusionDetected;
-    final Color primaryColor = hasBreach ? AppTheme.alertRed : AppTheme.tacticalAmber;
+    final Color primaryColor = hasBreach ? AppTheme.alertRed : AppTheme.uiAmber;
     final spots = state.detectionHistory;
     final double maxY = spots.map((s) => s.y).fold<double>(0.0, (prev, curr) => curr > prev ? curr : prev);
     final double dynamicMaxY = (maxY + 2.0).clamp(5.0, 30.0);
@@ -1043,11 +1043,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(Icons.show_chart, size: 16, color: AppTheme.tacticalAmber),
+                    const Icon(Icons.show_chart, size: 16, color: AppTheme.uiAmber),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        'REAL-TIME OPTICAL INTRUSION WAVEFORM (TELEMETRY)',
+                        'REAL-TIME OPTICAL INCIDENT WAVEFORM (TELEMETRY)',
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
@@ -1299,7 +1299,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.military_tech_rounded, size: 20, color: AppTheme.tacticalAmber),
+                  const Icon(Icons.military_tech_rounded, size: 20, color: AppTheme.uiAmber),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
@@ -1317,7 +1317,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Rapid tactical deployment to active coordinates',
+                'Rapid event deployment to active coordinates',
                 style: GoogleFonts.inter(fontSize: 11, color: AppTheme.mutedSilver),
               ),
               const SizedBox(height: 14),
@@ -1334,7 +1334,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     _buildSectorStatusRow('Sector 01 (Command Post)', 'PATROL ON POST', AppTheme.radarGreen),
                     const Divider(color: AppTheme.subtleBorder, height: 12),
-                    _buildSectorStatusRow('Sector 02 (Eastern Ridge)', 'PATROL READY', AppTheme.tacticalAmber),
+                    _buildSectorStatusRow('Sector 02 (Eastern Ridge)', 'PATROL READY', AppTheme.uiAmber),
                     const Divider(color: AppTheme.subtleBorder, height: 12),
                     _buildSectorStatusRow('Sector 03 (Northern Pass)', 'UAV MONITORED', AppTheme.radarGreen),
                   ],
@@ -1359,7 +1359,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.tacticalAmber,
+                        backgroundColor: AppTheme.uiAmber,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
@@ -1399,7 +1399,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildAlertItem(MockState state, Alert alert) {
     final bool isCritical = alert.severity == AlertSeverity.critical;
-    final Color accentColor = isCritical ? AppTheme.alertRed : AppTheme.tacticalAmber;
+    final Color accentColor = isCritical ? AppTheme.alertRed : AppTheme.uiAmber;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -1467,7 +1467,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.tacticalAmber,
+                    color: AppTheme.uiAmber,
                   ),
                 ),
               ),

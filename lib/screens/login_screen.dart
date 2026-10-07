@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
-  // Authentication Form Controllers - prefilled with primary Commander for instant authorized access
+  // Authentication Form Controllers - prefilled with primary Manager for instant authorized access
   final TextEditingController _userController = TextEditingController(text: 'VANCE-01');
   final TextEditingController _passController = TextEditingController(text: 'Defense2026!');
 
@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   final TextEditingController _regPassController = TextEditingController();
   final TextEditingController _regConfirmPassController = TextEditingController();
   final TextEditingController _regNameController = TextEditingController();
-  final TextEditingController _regRoleController = TextEditingController(text: 'Perimeter Defense Officer');
+  final TextEditingController _regRoleController = TextEditingController(text: 'Perimeter Management Officer');
   String _regClearance = 'LEVEL 3 • FIELD OPERATOR';
 
   bool _isRegisterMode = false;
@@ -149,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       username: username,
       password: password,
       name: name,
-      role: role.isNotEmpty ? role : 'Perimeter Defense Officer',
+      role: role.isNotEmpty ? role : 'Perimeter Management Officer',
       clearanceLevel: _regClearance,
     );
 
@@ -174,10 +174,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       backgroundColor: AppTheme.obsidianBlack,
       body: Stack(
         children: [
-          // Background tactical defense grid
+          // Background event management grid
           Positioned.fill(
             child: CustomPaint(
-              painter: _TacticalGridPainter(),
+              painter: _EventGridPainter(),
             ),
           ),
 
@@ -221,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppTheme.tacticalAmber.withValues(alpha: 0.25),
+                                      color: AppTheme.uiAmber.withValues(alpha: 0.25),
                                       blurRadius: 24,
                                       spreadRadius: 2,
                                     ),
@@ -241,9 +241,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     decoration: BoxDecoration(
                                       color: AppTheme.charcoalElevated,
                                       borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: AppTheme.tacticalAmber),
+                                      border: Border.all(color: AppTheme.uiAmber),
                                     ),
-                                    child: const Icon(Icons.shield, color: AppTheme.tacticalAmber, size: 30),
+                                    child: const Icon(Icons.shield, color: AppTheme.uiAmber, size: 30),
                                   ),
                                 ),
                               ),
@@ -265,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'CONFIDENTIAL TACTICAL C2 PERIMETER SURVEILLANCE',
+                          'CONFIDENTIAL EVENT HQ PERIMETER MONITORING',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             fontSize: 9.5,
@@ -276,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                         const SizedBox(height: 16),
 
-                        // Classified Security Vault Status Indicator (Pure Military Defense)
+                        // Classified Security Vault Status Indicator (Pure Event Management)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                           decoration: BoxDecoration(
@@ -307,7 +307,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  'MILITARY SECURITY VAULT: ACTIVE • CLASSIFIED LEVEL 5',
+                                  'EVENT SECURITY VAULT: ACTIVE • CLASSIFIED LEVEL 5',
                                   style: GoogleFonts.jetBrainsMono(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w700,
@@ -347,7 +347,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                       color: !_isRegisterMode ? AppTheme.charcoalElevated : Colors.transparent,
                                       borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
                                       border: !_isRegisterMode
-                                          ? Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.7))
+                                          ? Border.all(color: AppTheme.uiAmber.withValues(alpha: 0.7))
                                           : null,
                                     ),
                                     alignment: Alignment.center,
@@ -357,7 +357,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                         Icon(
                                           Icons.login_rounded,
                                           size: 14,
-                                          color: !_isRegisterMode ? AppTheme.tacticalAmber : AppTheme.mutedSilver,
+                                          color: !_isRegisterMode ? AppTheme.uiAmber : AppTheme.mutedSilver,
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
@@ -500,7 +500,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             decoration: InputDecoration(
                               hintText: 'Enter registered callsign',
                               hintStyle: GoogleFonts.inter(color: AppTheme.mutedSilver.withValues(alpha: 0.4), fontSize: 12),
-                              prefixIcon: const Icon(Icons.person_outline, size: 18, color: AppTheme.tacticalAmber),
+                              prefixIcon: const Icon(Icons.person_outline, size: 18, color: AppTheme.uiAmber),
                               filled: true,
                               fillColor: AppTheme.obsidianBlack,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -510,7 +510,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: AppTheme.tacticalAmber, width: 1.4),
+                                borderSide: const BorderSide(color: AppTheme.uiAmber, width: 1.4),
                               ),
                             ),
                           ),
@@ -535,9 +535,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               fontWeight: FontWeight.w600,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Enter defense security key',
+                              hintText: 'Enter management security key',
                               hintStyle: GoogleFonts.inter(color: AppTheme.mutedSilver.withValues(alpha: 0.4), fontSize: 12),
-                              prefixIcon: const Icon(Icons.lock_outline, size: 18, color: AppTheme.tacticalAmber),
+                              prefixIcon: const Icon(Icons.lock_outline, size: 18, color: AppTheme.uiAmber),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -555,7 +555,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: AppTheme.tacticalAmber, width: 1.4),
+                                borderSide: const BorderSide(color: AppTheme.uiAmber, width: 1.4),
                               ),
                             ),
                             onSubmitted: (_) => _handleLogin(),
@@ -570,7 +570,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 height: 22,
                                 child: Checkbox(
                                   value: _rememberMe,
-                                  activeColor: AppTheme.tacticalAmber,
+                                  activeColor: AppTheme.uiAmber,
                                   checkColor: AppTheme.obsidianBlack,
                                   side: const BorderSide(color: AppTheme.hairlineBorder),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
@@ -601,7 +601,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.tacticalAmber.withValues(alpha: _isButtonHovered ? 0.45 : 0.25),
+                                    color: AppTheme.uiAmber.withValues(alpha: _isButtonHovered ? 0.45 : 0.25),
                                     blurRadius: _isButtonHovered ? 18 : 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -609,7 +609,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               ),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.tacticalAmber,
+                                  backgroundColor: AppTheme.uiAmber,
                                   foregroundColor: AppTheme.obsidianBlack,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   elevation: 0,
@@ -787,7 +787,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           const SizedBox(height: 12),
 
                           Text(
-                            'TACTICAL DEFENSE ROLE',
+                            'EVENT MANAGEMENT ROLE',
                             style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.mutedSilver),
                           ),
                           const SizedBox(height: 6),
@@ -795,7 +795,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             controller: _regRoleController,
                             style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12),
                             decoration: InputDecoration(
-                              hintText: 'e.g. Surveillance Commander or Sensor Specialist',
+                              hintText: 'e.g. Monitoring Manager or Sensor Specialist',
                               filled: true,
                               fillColor: AppTheme.obsidianBlack,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -805,7 +805,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           const SizedBox(height: 12),
 
                           Text(
-                            'DEFENSE CLEARANCE LEVEL',
+                            'MANAGEMENT CLEARANCE LEVEL',
                             style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.mutedSilver),
                           ),
                           const SizedBox(height: 6),
@@ -823,7 +823,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               DropdownMenuItem(value: 'LEVEL 3 • FIELD OPERATOR', child: Text('LEVEL 3 • FIELD OPERATOR')),
                               DropdownMenuItem(value: 'LEVEL 4 • RAPID RESPONSE', child: Text('LEVEL 4 • RAPID RESPONSE')),
                               DropdownMenuItem(value: 'LEVEL 5 • DEFCON-1 COMMAND', child: Text('LEVEL 5 • DEFCON-1 COMMAND')),
-                              DropdownMenuItem(value: 'LEVEL 5 • ROOT C2 ARCHITECT', child: Text('LEVEL 5 • ROOT C2 ARCHITECT')),
+                              DropdownMenuItem(value: 'LEVEL 5 • ROOT HQ ARCHITECT', child: Text('LEVEL 5 • ROOT HQ ARCHITECT')),
                             ],
                             onChanged: (v) {
                               if (v != null) setState(() => _regClearance = v);
@@ -868,10 +868,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.verified_user_outlined, size: 13, color: AppTheme.tacticalAmber),
+                            const Icon(Icons.verified_user_outlined, size: 13, color: AppTheme.uiAmber),
                             const SizedBox(width: 6),
                             Text(
-                              'CLASSIFIED DEFENSE SYSTEM • REGISTERED OPERATORS ONLY',
+                              'CLASSIFIED MANAGEMENT SYSTEM • REGISTERED OPERATORS ONLY',
                               style: GoogleFonts.inter(
                                 color: AppTheme.mutedSilver,
                                 fontSize: 9.5,
@@ -894,7 +894,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 }
 
-class _TacticalGridPainter extends CustomPainter {
+class _EventGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -910,7 +910,7 @@ class _TacticalGridPainter extends CustomPainter {
     }
 
     final cornerPaint = Paint()
-      ..color = AppTheme.tacticalAmber.withValues(alpha: 0.25)
+      ..color = AppTheme.uiAmber.withValues(alpha: 0.25)
       ..strokeWidth = 1.5;
 
     canvas.drawLine(const Offset(20, 20), const Offset(45, 20), cornerPaint);

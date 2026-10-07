@@ -23,7 +23,7 @@ void main() {
       username: 'test_commander',
       password: 'defense_secret_key_2026',
       name: 'General Vikram Rao',
-      role: 'Surveillance Commander',
+      role: 'Monitoring Manager',
       clearanceLevel: 'LEVEL 5 • DEFCON-1 COMMAND',
     );
     expect(regError, isNull);
@@ -63,8 +63,8 @@ void main() {
       name: 'Niranchan (Lead)',
       callsign: 'niranchan-gif',
       email: 'niranchan@eventguard.mil',
-      role: 'Lead Defense Architect',
-      clearanceLevel: 'LEVEL 5 • ROOT C2 ARCHITECT',
+      role: 'Lead Management Architect',
+      clearanceLevel: 'LEVEL 5 • ROOT HQ ARCHITECT',
       provider: AuthProvider.github,
     );
     state.loginWithGitHub(ghUser);

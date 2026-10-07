@@ -219,7 +219,7 @@ class CameraManager:
         cv2.rectangle(frame, (160, 220), (480, 260), (239, 68, 68), 1)
         cv2.putText(frame, f"{self.camera_id} HARDWARE STANDBY", (185, 246),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.50, (244, 245, 247), 1, cv2.LINE_AA)
-        cv2.putText(frame, "Optical sensor disabled • Click ACTIVATE in C2 Dashboard", (110, 295),
+        cv2.putText(frame, "Optical sensor disabled • Click ACTIVATE in HQ Dashboard", (110, 295),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.42, (156, 163, 175), 1, cv2.LINE_AA)
         return frame
 
@@ -252,7 +252,7 @@ class CameraManager:
             cv2.putText(frame, "Connect phone via USB (Iriun / DroidCam / Tethering)", (90, 290),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.38, (245, 158, 11), 1, cv2.LINE_AA)
         else:
-            cv2.putText(frame, "Awaiting hardware lock • DirectShow C2 stream", (145, 265),
+            cv2.putText(frame, "Awaiting hardware lock • DirectShow HQ stream", (145, 265),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.40, (156, 163, 175), 1, cv2.LINE_AA)
         return frame
 
@@ -292,7 +292,7 @@ class CameraManager:
 
         status_color = (68, 68, 239) if self.intrusion_detected else (129, 185, 16)
         cv2.circle(frame, (16, 16), 5, status_color, -1)
-        cv2.putText(frame, f"{self.camera_id} [{self.name.upper()}] • {self.zone.upper()} C2 STREAM", (28, 21),
+        cv2.putText(frame, f"{self.camera_id} [{self.name.upper()}] • {self.zone.upper()} HQ STREAM", (28, 21),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.44, (244, 245, 247), 1, cv2.LINE_AA)
 
         mode_text = f"AI: {self.mode.upper()} | {fps_val:.0f} FPS"
@@ -463,7 +463,7 @@ class CameraManager:
             vehicles = 0
             animals = 0
             faces = 0
-            intrusion = False
+            incident = False
 
             # 1. YOLOv11 Detection (thread-safe with yolo_lock)
             if self.mode in ("all", "person", "human", "vehicle", "fence", "vir", "anpr", "detection", "detc"):
@@ -491,7 +491,7 @@ class CameraManager:
                             else:
                                 animals += 1
 
-                            # Intrusion check against virtual perimeter fence
+                            # Incident check against virtual perimeter fence
                             cx, cy = int((x1 + x2) / 2), int((y1 + y2) / 2)
                             is_inside = False
                             if self.virtual_fence is not None:
@@ -499,8 +499,8 @@ class CameraManager:
 
                             is_breach = is_inside and (self.mode in ("all", "fence", "vir"))
                             if is_breach:
-                                intrusion = True
-                                self._trigger_alert(f"Perimeter Intrusion Detected: {label.upper()} on {self.camera_id}")
+                                incident = True
+                                self._trigger_alert(f"Perimeter Incident Detected: {label.upper()} on {self.camera_id}")
 
                             updated_boxes.append((x1, y1, x2, y2, label, conf, is_breach))
 
@@ -534,7 +534,7 @@ class CameraManager:
                 self.active_boxes = updated_boxes
                 self.active_faces = updated_faces
                 self.active_plates = updated_plates
-                self.intrusion_detected = intrusion
+                self.intrusion_detected = incident
                 self.counts = {
                     "person": persons,
                     "vehicle": vehicles,
@@ -542,7 +542,7 @@ class CameraManager:
                     "face": faces
                 }
 
-                if intrusion:
+                if incident:
                     self.current_detection = f"CRITICAL: {self.camera_id} PERIMETER BREACH"
                 elif persons > 0:
                     self.current_detection = f"Person Tracked ({persons})"
@@ -900,7 +900,7 @@ def api_shutdown():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="EventGuard AI Tactical Video Server")
+    parser = argparse.ArgumentParser(description="EventGuard AI Event Video Server")
     parser.add_argument('--cam1', default=None, help='Camera 1 source (device index or stream URL)')
     parser.add_argument('--cam2', default=None, help='Camera 2 source (phone USB device index or IP stream URL)')
     parser.add_argument('--port', type=int, default=5000, help='Port to run Flask server')

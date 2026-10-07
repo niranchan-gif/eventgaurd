@@ -77,7 +77,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search alert ID, sector, camera...',
                       hintStyle: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
-                      prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.tacticalAmber),
+                      prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.uiAmber),
                       suffixIcon: query.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, size: 16, color: AppTheme.mutedSilver),
@@ -92,7 +92,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                       fillColor: AppTheme.obsidianBlack,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.hairlineBorder)),
                       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.hairlineBorder)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.tacticalAmber, width: 1.5)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.uiAmber, width: 1.5)),
                     ),
                   ),
                 ),
@@ -105,7 +105,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                     style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: AppTheme.obsidianBlack, letterSpacing: 0.5),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.tacticalAmber,
+                    backgroundColor: AppTheme.uiAmber,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
@@ -143,7 +143,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                           const SizedBox(height: 18),
                           Text(
                             state.alerts.isEmpty
-                                ? 'PERIMETER DEFENSE CLEAR • ZERO ACTIVE BREACHES'
+                                ? 'PERIMETER MANAGEMENT CLEAR • ZERO ACTIVE BREACHES'
                                 : 'NO ALERTS MATCH FILTER "$_selectedFilter"',
                             style: GoogleFonts.inter(
                               color: AppTheme.titaniumWhite,
@@ -164,7 +164,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                             const SizedBox(height: 18),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.tacticalAmber,
+                                backgroundColor: AppTheme.uiAmber,
                                 foregroundColor: AppTheme.obsidianBlack,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
@@ -208,12 +208,12 @@ class _AlertsScreenState extends State<AlertsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? (isCritical ? AppTheme.alertRed : AppTheme.tacticalAmber)
+                ? (isCritical ? AppTheme.alertRed : AppTheme.uiAmber)
                 : AppTheme.obsidianBlack,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected
-                  ? (isCritical ? AppTheme.alertRed : AppTheme.tacticalAmber)
+                  ? (isCritical ? AppTheme.alertRed : AppTheme.uiAmber)
                   : AppTheme.hairlineBorder,
             ),
           ),
@@ -267,7 +267,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
           ),
           title: Row(
             children: [
-              const Icon(Icons.send_rounded, color: AppTheme.tacticalAmber, size: 22),
+              const Icon(Icons.send_rounded, color: AppTheme.uiAmber, size: 22),
               const SizedBox(width: 10),
               Text(
                 'Dispatch Quick Reaction Team',
@@ -280,7 +280,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Authorize tactical patrol deployment to respond to active sector incursions.',
+                'Authorize event patrol deployment to respond to active sector incursions.',
                 style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
               ),
               const SizedBox(height: 16),
@@ -341,7 +341,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
               },
               icon: const Icon(Icons.send, size: 14, color: AppTheme.obsidianBlack),
               label: Text('AUTHORIZE DISPATCH', style: GoogleFonts.inter(color: AppTheme.obsidianBlack, fontWeight: FontWeight.w900)),
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.tacticalAmber),
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.uiAmber),
             ),
           ],
         );
@@ -367,7 +367,7 @@ class _InteractiveAlertListItemState extends State<_InteractiveAlertListItem> {
     final alert = widget.alert;
     final bool isCritical = alert.severity == AlertSeverity.critical;
     final bool isActive = alert.status == AlertStatus.active;
-    final Color badgeColor = isCritical ? AppTheme.alertRed : AppTheme.tacticalAmber;
+    final Color badgeColor = isCritical ? AppTheme.alertRed : AppTheme.uiAmber;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -386,14 +386,14 @@ class _InteractiveAlertListItemState extends State<_InteractiveAlertListItem> {
             border: Border.all(
               color: isCritical && isActive
                   ? AppTheme.alertRed
-                  : (_isHovered ? AppTheme.tacticalAmber : AppTheme.hairlineBorder),
+                  : (_isHovered ? AppTheme.uiAmber : AppTheme.hairlineBorder),
               width: isCritical && isActive || _isHovered ? 1.5 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
                 color: isCritical && isActive
                     ? AppTheme.alertRed.withValues(alpha: 0.2)
-                    : (_isHovered ? AppTheme.tacticalAmber.withValues(alpha: 0.12) : Colors.black26),
+                    : (_isHovered ? AppTheme.uiAmber.withValues(alpha: 0.12) : Colors.black26),
                 blurRadius: _isHovered ? 14 : 6,
                 offset: const Offset(0, 3),
               ),
@@ -450,7 +450,7 @@ class _InteractiveAlertListItemState extends State<_InteractiveAlertListItem> {
                         const SizedBox(width: 10),
                         Text(
                           alert.id,
-                          style: GoogleFonts.inter(color: AppTheme.tacticalAmber, fontSize: 11, fontWeight: FontWeight.bold),
+                          style: GoogleFonts.inter(color: AppTheme.uiAmber, fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 10),
                         Text(
@@ -491,7 +491,7 @@ class _InteractiveAlertListItemState extends State<_InteractiveAlertListItem> {
                 ElevatedButton(
                   onPressed: () => context.read<MockState>().resolveAlert(alert.id),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.tacticalAmber,
+                    backgroundColor: AppTheme.uiAmber,
                     foregroundColor: AppTheme.obsidianBlack,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

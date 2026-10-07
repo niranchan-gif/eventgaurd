@@ -31,13 +31,13 @@ class UserModel {
     return 'OP';
   }
 
-  // Default auto-initialized commander profile for zero-manual instant boot
+  // Default auto-initialized manager profile for zero-manual instant boot
   static const UserModel defaultCommander = UserModel(
-    id: 'OP-COMMANDER-01',
-    name: 'Commander Sarah Vance',
+    id: 'OP-MANAGER-01',
+    name: 'Manager Sarah Vance',
     callsign: 'VANCE-01',
-    email: 'commander.vance@eventguard.mil',
-    role: 'Chief Tactical Defense Officer',
+    email: 'manager.vance@eventguard.mil',
+    role: 'Chief Event Management Officer',
     clearanceLevel: 'LEVEL 4 • COMMAND CLEARANCE',
     avatarUrl: null,
     provider: AuthProvider.password,
@@ -48,8 +48,8 @@ class UserModel {
     id: 'OP-UNASSIGNED',
     name: 'Operator On-Duty',
     callsign: 'operator',
-    email: 'c2@eventguard.mil',
-    role: 'Defense Watch Officer',
+    email: 'hq@eventguard.mil',
+    role: 'Management Watch Officer',
     clearanceLevel: 'LEVEL 1 • STATION ACTIVE',
     avatarUrl: null,
     provider: AuthProvider.password,

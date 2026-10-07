@@ -9,7 +9,7 @@ class IncidentsScreen extends StatelessWidget {
   const IncidentsScreen({Key? key}) : super(key: key);
 
   void _showLogIncidentDialog(BuildContext context) {
-    final threatController = TextEditingController(text: 'Perimeter Intrusion Breach');
+    final threatController = TextEditingController(text: 'Perimeter Incident Breach');
     final sensorController = TextEditingController(text: 'CAM-001 (Laptop Webcam)');
     final sectorController = TextEditingController(text: 'Sector 01 Command Post');
     final notesController = TextEditingController(text: 'Target observed attempting breach along northern security perimeter fence.');
@@ -28,10 +28,10 @@ class IncidentsScreen extends StatelessWidget {
               ),
               title: Row(
                 children: [
-                  const Icon(Icons.shield_outlined, color: AppTheme.tacticalAmber, size: 22),
+                  const Icon(Icons.shield_outlined, color: AppTheme.uiAmber, size: 22),
                   const SizedBox(width: 10),
                   Text(
-                    'Log Defense Security Incident',
+                    'Log Management Security Incident',
                     style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -52,7 +52,7 @@ class IncidentsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 14),
 
-                      Text('Surveillance Sensor / Channel', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text('Monitoring Sensor / Channel', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: sensorController,
@@ -99,7 +99,7 @@ class IncidentsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 14),
 
-                      Text('Tactical Incident Intel / Operator Notes', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text('Event Incident Intel / Operator Notes', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: notesController,
@@ -118,7 +118,7 @@ class IncidentsScreen extends StatelessWidget {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.tacticalAmber,
+                    backgroundColor: AppTheme.uiAmber,
                     foregroundColor: AppTheme.obsidianBlack,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -170,10 +170,10 @@ class IncidentsScreen extends StatelessWidget {
           ),
           title: Row(
             children: [
-              const Icon(Icons.assignment_outlined, color: AppTheme.tacticalAmber, size: 22),
+              const Icon(Icons.assignment_outlined, color: AppTheme.uiAmber, size: 22),
               const SizedBox(width: 10),
               Text(
-                'Defense Incident Report • ${incident.id}',
+                'Management Incident Report • ${incident.id}',
                 style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
@@ -189,13 +189,13 @@ class IncidentsScreen extends StatelessWidget {
                 _buildReportField('Deployment Sector', incident.location),
                 _buildReportField('Sensor / Ingestion Node', incident.cameraId),
                 _buildReportField('Detection Timestamp', incident.detectedAt.toIso8601String().replaceAll('T', ' ').substring(0, 19)),
-                _buildReportField('Assigned Defense Officer', incident.assignedTo),
+                _buildReportField('Assigned Management Officer', incident.assignedTo),
                 _buildReportField('AI Ingestion Confidence', '${incident.confidence}% Verified'),
                 _buildReportField('Current Status', incident.status.name.toUpperCase()),
                 const SizedBox(height: 12),
                 const Divider(color: AppTheme.hairlineBorder, height: 1),
                 const SizedBox(height: 12),
-                Text('Tactical Analysis & Summary:', style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11, fontWeight: FontWeight.bold)),
+                Text('Event Analysis & Summary:', style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Container(
                   width: double.infinity,
@@ -206,7 +206,7 @@ class IncidentsScreen extends StatelessWidget {
                     border: Border.all(color: AppTheme.hairlineBorder),
                   ),
                   child: Text(
-                    incident.notes.isNotEmpty ? incident.notes : 'Standard optical detection triggered automated perimeter surveillance breach alarm.',
+                    incident.notes.isNotEmpty ? incident.notes : 'Standard optical detection triggered automated perimeter monitoring breach alarm.',
                     style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12),
                   ),
                 ),
@@ -273,7 +273,7 @@ class IncidentsScreen extends StatelessWidget {
                   children: [
                     Text('Incident Log & Dispatch Register', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.titaniumWhite)),
                     const SizedBox(height: 4),
-                    Text('Official border defense intrusion record and active patrol dispatches', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.mutedSilver)),
+                    Text('Official border management incident record and active patrol dispatches', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.mutedSilver)),
                   ],
                 ),
                 const Spacer(),
@@ -282,7 +282,7 @@ class IncidentsScreen extends StatelessWidget {
                   icon: const Icon(Icons.add_moderator, size: 18, color: AppTheme.obsidianBlack),
                   label: Text('LOG INCIDENT', style: GoogleFonts.inter(fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.tacticalAmber,
+                    backgroundColor: AppTheme.uiAmber,
                     foregroundColor: AppTheme.obsidianBlack,
                     elevation: 2,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -312,13 +312,13 @@ class IncidentsScreen extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: AppTheme.obsidianBlack,
                               shape: BoxShape.circle,
-                              border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.5)),
+                              border: Border.all(color: AppTheme.uiAmber.withValues(alpha: 0.5)),
                             ),
-                            child: const Icon(Icons.verified_user_outlined, color: AppTheme.tacticalAmber, size: 38),
+                            child: const Icon(Icons.verified_user_outlined, color: AppTheme.uiAmber, size: 38),
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'NO LOGGED DEFENSE INCIDENTS',
+                            'NO LOGGED MANAGEMENT INCIDENTS',
                             style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontWeight: FontWeight.w800, fontSize: 14),
                           ),
                           const SizedBox(height: 6),
@@ -330,7 +330,7 @@ class IncidentsScreen extends StatelessWidget {
                           const SizedBox(height: 20),
                           ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.tacticalAmber,
+                              backgroundColor: AppTheme.uiAmber,
                               foregroundColor: AppTheme.obsidianBlack,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
@@ -374,12 +374,12 @@ class IncidentsScreen extends StatelessWidget {
                             ],
                             rows: state.incidents.map((i) {
                               bool isCrit = i.severity == IncidentSeverity.critical;
-                              Color sevColor = isCrit ? AppTheme.alertRed : AppTheme.tacticalAmber;
+                              Color sevColor = isCrit ? AppTheme.alertRed : AppTheme.uiAmber;
                               bool isResolved = i.status == IncidentStatus.resolved;
 
                               return DataRow(
                                 cells: [
-                                  DataCell(Text(i.id, style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.tacticalAmber))),
+                                  DataCell(Text(i.id, style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.uiAmber))),
                                   DataCell(Text(i.threatType)),
                                   DataCell(Text(i.cameraId)),
                                   DataCell(Text(i.location)),
@@ -401,13 +401,13 @@ class IncidentsScreen extends StatelessWidget {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: isResolved ? AppTheme.radarGreen.withValues(alpha: 0.2) : AppTheme.tacticalAmber.withValues(alpha: 0.2),
+                                        color: isResolved ? AppTheme.radarGreen.withValues(alpha: 0.2) : AppTheme.uiAmber.withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
                                         i.status.name.toUpperCase(),
                                         style: GoogleFonts.inter(
-                                          color: isResolved ? AppTheme.radarGreen : AppTheme.tacticalAmber,
+                                          color: isResolved ? AppTheme.radarGreen : AppTheme.uiAmber,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 10,
                                         ),

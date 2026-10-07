@@ -41,7 +41,7 @@ class CamerasScreen extends StatelessWidget {
                   icon: const Icon(Icons.add_a_photo_outlined, size: 18, color: AppTheme.obsidianBlack),
                   label: Text('PROVISION CAMERA', style: GoogleFonts.inter(fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.tacticalAmber,
+                    backgroundColor: AppTheme.uiAmber,
                     foregroundColor: AppTheme.obsidianBlack,
                     elevation: 2,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -115,7 +115,7 @@ class CamerasScreen extends StatelessWidget {
                                   isCam1 ? '${c.id} (WEBCAM)' : c.id,
                                   style: GoogleFonts.inter(
                                     fontWeight: FontWeight.bold,
-                                    color: isCam1 ? AppTheme.tacticalAmber : AppTheme.mutedSilver,
+                                    color: isCam1 ? AppTheme.uiAmber : AppTheme.mutedSilver,
                                   ),
                                 ),
                               ],
@@ -229,7 +229,7 @@ class CamerasScreen extends StatelessWidget {
           ),
           title: Row(
             children: [
-              const Icon(Icons.add_a_photo_outlined, color: AppTheme.tacticalAmber, size: 20),
+              const Icon(Icons.add_a_photo_outlined, color: AppTheme.uiAmber, size: 20),
               const SizedBox(width: 8),
               Text('Provision New Camera Unit', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
@@ -256,7 +256,7 @@ class CamerasScreen extends StatelessWidget {
                   decoration: const InputDecoration(hintText: 'e.g. Checkpoint Alpha'),
                 ),
                 const SizedBox(height: 14),
-                Text('Security Sector / Tactical Zone', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                Text('Security Sector / Event Zone', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
                 TextField(
                   controller: zoneController,
@@ -273,7 +273,7 @@ class CamerasScreen extends StatelessWidget {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.tacticalAmber,
+                backgroundColor: AppTheme.uiAmber,
                 foregroundColor: AppTheme.obsidianBlack,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -281,7 +281,7 @@ class CamerasScreen extends StatelessWidget {
               onPressed: () {
                 final newCam = Camera(
                   id: idController.text.trim(),
-                  name: 'Surveillance Node',
+                  name: 'Monitoring Node',
                   location: locController.text.trim(),
                   zone: zoneController.text.trim(),
                   status: CameraStatus.online,

@@ -107,13 +107,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     badge: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppTheme.tacticalAmber.withValues(alpha: 0.15),
+                        color: AppTheme.uiAmber.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.5)),
+                        border: Border.all(color: AppTheme.uiAmber.withValues(alpha: 0.5)),
                       ),
                       child: Text(
                         '${state.cam1Counts['person']! + state.cam1Counts['vehicle']! + state.cam1Counts['face']! + state.cam1Counts['animal']!} IN FRAME',
-                        style: GoogleFonts.inter(color: AppTheme.tacticalAmber, fontSize: 9, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.inter(color: AppTheme.uiAmber, fontSize: 9, fontWeight: FontWeight.bold),
                       ),
                     ),
                     child: _buildClassificationDonutChart(state),
@@ -153,7 +153,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   dropdownColor: AppTheme.charcoalSurface,
                   value: _selectedCameraId,
                   style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontWeight: FontWeight.bold, fontSize: 12),
-                  icon: const Icon(Icons.videocam, color: AppTheme.tacticalAmber, size: 16),
+                  icon: const Icon(Icons.videocam, color: AppTheme.uiAmber, size: 16),
                   items: [
                     const DropdownMenuItem(value: 'CAM-001', child: Text('CAM-001 (Laptop Cam • Live)')),
                     const DropdownMenuItem(value: 'CAM-002', child: Text('CAM-002 (North Perimeter)')),
@@ -182,8 +182,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 child: DropdownButton<String>(
                   dropdownColor: AppTheme.charcoalSurface,
                   value: _timeRange,
-                  style: GoogleFonts.inter(color: AppTheme.tacticalAmber, fontWeight: FontWeight.bold, fontSize: 12),
-                  icon: const Icon(Icons.timeline, color: AppTheme.tacticalAmber, size: 16),
+                  style: GoogleFonts.inter(color: AppTheme.uiAmber, fontWeight: FontWeight.bold, fontSize: 12),
+                  icon: const Icon(Icons.timeline, color: AppTheme.uiAmber, size: 16),
                   items: [
                     'Live Optical Stream (Real-Time)',
                     'Last 1 Hour (60m Window)',
@@ -230,7 +230,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               runSpacing: 6,
               children: [
                 Text(
-                  'Surveillance Intelligence & Analytics',
+                  'Monitoring Intelligence & Analytics',
                   style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.titaniumWhite),
                 ),
                 Container(
@@ -316,7 +316,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             _buildMetricItem(
               'CAM-01 Live In-Frame',
               '$liveTotalTargets Targets',
-              liveTotalTargets > 0 ? AppTheme.tacticalAmber : AppTheme.radarGreen,
+              liveTotalTargets > 0 ? AppTheme.uiAmber : AppTheme.radarGreen,
               Icons.center_focus_strong,
             ),
             _buildDivider(),
@@ -337,7 +337,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             _buildMetricItem(
               'AI Inference Latency',
               state.isCameraOn ? '${state.liveLatencyMs} ms' : 'N/A',
-              state.liveLatencyMs < 60 ? AppTheme.radarGreen : AppTheme.tacticalAmber,
+              state.liveLatencyMs < 60 ? AppTheme.radarGreen : AppTheme.uiAmber,
               Icons.bolt,
             ),
             _buildDivider(),
@@ -351,7 +351,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             _buildMetricItem(
               'AI Engine Mode',
               state.activeAiMode.toUpperCase(),
-              AppTheme.tacticalAmber,
+              AppTheme.uiAmber,
               Icons.psychology_outlined,
             ),
           ],
@@ -415,13 +415,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppTheme.tacticalAmber.withValues(alpha: 0.15),
+                      color: AppTheme.uiAmber.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.5)),
+                      border: Border.all(color: AppTheme.uiAmber.withValues(alpha: 0.5)),
                     ),
                     child: Text(
                       camera.id,
-                      style: GoogleFonts.inter(color: AppTheme.tacticalAmber, fontSize: 11, fontWeight: FontWeight.w900),
+                      style: GoogleFonts.inter(color: AppTheme.uiAmber, fontSize: 11, fontWeight: FontWeight.w900),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -484,7 +484,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         color: AppTheme.obsidianBlack.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
-                          color: state.intrusionDetected ? AppTheme.alertRed : AppTheme.tacticalAmber.withValues(alpha: 0.6),
+                          color: state.intrusionDetected ? AppTheme.alertRed : AppTheme.uiAmber.withValues(alpha: 0.6),
                         ),
                       ),
                       child: Row(
@@ -493,7 +493,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           Icon(
                             state.intrusionDetected ? Icons.warning : Icons.visibility,
                             size: 13,
-                            color: state.intrusionDetected ? AppTheme.alertRed : AppTheme.tacticalAmber,
+                            color: state.intrusionDetected ? AppTheme.alertRed : AppTheme.uiAmber,
                           ),
                           const SizedBox(width: 6),
                           Text(
@@ -533,7 +533,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: isActive ? AppTheme.tacticalAmber : Colors.transparent,
+                                  color: isActive ? AppTheme.uiAmber : Colors.transparent,
                                   borderRadius: BorderRadius.circular(3),
                                 ),
                                 child: Text(
@@ -565,7 +565,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (state.cam1Counts['person']! > 0)
-          _buildBadgeTag('${state.cam1Counts['person']!} HUMANS', AppTheme.tacticalAmber),
+          _buildBadgeTag('${state.cam1Counts['person']!} HUMANS', AppTheme.uiAmber),
         if (state.cam1Counts['vehicle']! > 0) ...[
           const SizedBox(width: 6),
           _buildBadgeTag('${state.cam1Counts['vehicle']!} VEHICLES', AppTheme.titaniumWhite),
@@ -701,7 +701,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     child: Text(
                       labels[idx],
                       style: GoogleFonts.inter(
-                        color: isNow ? AppTheme.tacticalAmber : AppTheme.mutedSilver,
+                        color: isNow ? AppTheme.uiAmber : AppTheme.mutedSilver,
                         fontWeight: isNow ? FontWeight.bold : FontWeight.normal,
                         fontSize: 10,
                       ),
@@ -727,14 +727,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             spots: spots,
             isCurved: true,
             curveSmoothness: 0.25,
-            color: state.intrusionDetected ? AppTheme.alertRed : AppTheme.tacticalAmber,
+            color: state.intrusionDetected ? AppTheme.alertRed : AppTheme.uiAmber,
             barWidth: 2.6,
             dotData: FlDotData(
               show: !isLiveMode,
               getDotPainter: (spot, percent, barData, index) {
                 return FlDotCirclePainter(
                   radius: 3.5,
-                  color: AppTheme.tacticalAmber,
+                  color: AppTheme.uiAmber,
                   strokeColor: AppTheme.charcoalSurface,
                   strokeWidth: 2,
                 );
@@ -746,8 +746,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  (state.intrusionDetected ? AppTheme.alertRed : AppTheme.tacticalAmber).withValues(alpha: 0.28),
-                  (state.intrusionDetected ? AppTheme.alertRed : AppTheme.tacticalAmber).withValues(alpha: 0.02),
+                  (state.intrusionDetected ? AppTheme.alertRed : AppTheme.uiAmber).withValues(alpha: 0.28),
+                  (state.intrusionDetected ? AppTheme.alertRed : AppTheme.uiAmber).withValues(alpha: 0.02),
                 ],
               ),
             ),
@@ -772,14 +772,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final currentTargets = (state.cam1Counts['person']! + state.cam1Counts['vehicle']! + state.cam1Counts['face']! + state.cam1Counts['animal']!);
     final targetIndex = (currentTargets * 25.0).clamp(0.0, 100.0);
 
-    // 5. Perimeter Virtual Fence Integrity (100% nominal, 15% on intrusion breach)
+    // 5. Perimeter Virtual Fence Integrity (100% nominal, 15% on incident breach)
     final fenceIntegrity = state.intrusionDetected ? 15.0 : (state.isCameraOn ? 100.0 : 40.0);
 
     final barItems = [
       {'label': 'Feed FPS (${state.cam1Fps.toStringAsFixed(0)})', 'val': fpsValue, 'color': AppTheme.radarGreen},
-      {'label': 'Bitrate (${(state.liveBitrateKbps / 1000).toStringAsFixed(1)}M)', 'val': bitrateValue, 'color': AppTheme.tacticalAmber},
+      {'label': 'Bitrate (${(state.liveBitrateKbps / 1000).toStringAsFixed(1)}M)', 'val': bitrateValue, 'color': AppTheme.uiAmber},
       {'label': 'AI Speed (${state.liveLatencyMs}ms)', 'val': aiEfficiency, 'color': const Color(0xFF60A5FA)},
-      {'label': 'Target Load', 'val': targetIndex > 0 ? targetIndex : 5.0, 'color': targetIndex > 0 ? AppTheme.tacticalAmber : AppTheme.disabledGrey},
+      {'label': 'Target Load', 'val': targetIndex > 0 ? targetIndex : 5.0, 'color': targetIndex > 0 ? AppTheme.uiAmber : AppTheme.disabledGrey},
       {'label': 'Perimeter Fence', 'val': fenceIntegrity, 'color': state.intrusionDetected ? AppTheme.alertRed : AppTheme.radarGreen},
     ];
 
@@ -866,7 +866,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final sections = <PieChartSectionData>[];
     if (pPct > 0) {
       sections.add(PieChartSectionData(
-        color: AppTheme.tacticalAmber,
+        color: AppTheme.uiAmber,
         value: pPct,
         title: '${pPct.toInt()}%',
         titleStyle: GoogleFonts.inter(color: AppTheme.obsidianBlack, fontWeight: FontWeight.w900, fontSize: 11),
@@ -940,7 +940,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLegendRow(AppTheme.tacticalAmber, 'Persons (Live: $liveP)', '$totalP total'),
+              _buildLegendRow(AppTheme.uiAmber, 'Persons (Live: $liveP)', '$totalP total'),
               const SizedBox(height: 8),
               _buildLegendRow(AppTheme.titaniumWhite, 'Vehicles (Live: $liveV)', '$totalV total'),
               const SizedBox(height: 8),

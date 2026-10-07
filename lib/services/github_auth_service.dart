@@ -54,7 +54,7 @@ class GitHubAuthService {
           'https://raw.githubusercontent.com/$defaultRepoOwner/$defaultRepoName/main/$encryptedVaultFileName',
         );
         final request = await client.getUrl(rawUrl);
-        request.headers.set('User-Agent', 'EventGuard-AI-Defense/1.0');
+        request.headers.set('User-Agent', 'EventGuard-AI-Management/1.0');
         final response = await request.close().timeout(const Duration(seconds: 3));
         if (response.statusCode == 200) {
           final encryptedContent = await response.transform(utf8.decoder).join();
@@ -107,7 +107,7 @@ class GitHubAuthService {
             name: op['name'] ?? op['username'],
             callsign: op['callsign'] ?? op['username'],
             email: op['email'] ?? '${op['username']}@eventguard.mil',
-            role: op['role'] ?? 'Defense Operator',
+            role: op['role'] ?? 'Management Operator',
             clearanceLevel: op['clearanceLevel'] ?? 'LEVEL 3 • SENSOR OPERATOR',
             avatarUrl: null,
             provider: AuthProvider.password,
@@ -163,7 +163,7 @@ class GitHubAuthService {
 
     operators.add(newRecord);
 
-    // Encrypt the updated list with military vault encryption
+    // Encrypt the updated list with event vault encryption
     final jsonPayload = const JsonEncoder.withIndent('  ').convert(operators);
     final encryptedData = VaultEncryptionService.encryptString(jsonPayload);
 
@@ -201,7 +201,7 @@ class GitHubAuthService {
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
     try {
       final request = await client.getUrl(Uri.parse('https://api.github.com/user'));
-      request.headers.set('User-Agent', 'EventGuard-AI-Defense/1.0');
+      request.headers.set('User-Agent', 'EventGuard-AI-Management/1.0');
       request.headers.set('Accept', 'application/vnd.github.v3+json');
       request.headers.set('Authorization', 'Bearer $trimmedToken');
 
@@ -222,8 +222,8 @@ class GitHubAuthService {
           name: name,
           callsign: login,
           email: email,
-          role: 'GitHub Defense Lead / Core Contributor',
-          clearanceLevel: 'LEVEL 5 • GITHUB DEFENSE ARCHITECT',
+          role: 'GitHub Management Lead / Core Contributor',
+          clearanceLevel: 'LEVEL 5 • GITHUB MANAGEMENT ARCHITECT',
           avatarUrl: avatarUrl,
           provider: AuthProvider.github,
         );
@@ -240,7 +240,7 @@ class GitHubAuthService {
     try {
       final client = HttpClient()..connectionTimeout = const Duration(seconds: 2);
       final request = await client.getUrl(Uri.parse('https://api.github.com/zen'));
-      request.headers.set('User-Agent', 'EventGuard-AI-Defense/1.0');
+      request.headers.set('User-Agent', 'EventGuard-AI-Management/1.0');
       final response = await request.close().timeout(const Duration(seconds: 2));
       return response.statusCode == 200;
     } catch (_) {

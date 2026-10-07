@@ -133,7 +133,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
     final bool isCam2 = widget.camera.id == 'CAM-002' || widget.camera.id == 'SLOT-02';
     final bool hasThreat = widget.camera.currentDetection.contains('CRITICAL') ||
         widget.camera.currentDetection.contains('BREACH') ||
-        widget.camera.currentDetection.contains('Intrusion');
+        widget.camera.currentDetection.contains('Incident');
 
     if (_frameBytes != null && _isOnline) {
       return ClipRRect(
@@ -149,7 +149,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
               excludeFromSemantics: true,
             ),
 
-            // Subtle scanline overlay for military C2 HUD aesthetic
+            // Subtle scanline overlay for event HQ HUD aesthetic
             IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
@@ -176,11 +176,11 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
                   vertical: widget.isModal ? 4 : 3,
                 ),
                 decoration: BoxDecoration(
-                  color: hasThreat ? AppTheme.alertRed : (isCam2 ? AppTheme.tacticalAmber : AppTheme.radarGreen),
+                  color: hasThreat ? AppTheme.alertRed : (isCam2 ? AppTheme.uiAmber : AppTheme.radarGreen),
                   borderRadius: BorderRadius.circular(4),
                   boxShadow: [
                     BoxShadow(
-                      color: (hasThreat ? AppTheme.alertRed : (isCam2 ? AppTheme.tacticalAmber : AppTheme.radarGreen)).withValues(alpha: 0.4),
+                      color: (hasThreat ? AppTheme.alertRed : (isCam2 ? AppTheme.uiAmber : AppTheme.radarGreen)).withValues(alpha: 0.4),
                       blurRadius: 8,
                     ),
                   ],
@@ -228,7 +228,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
                 child: Text(
                   isCam2 ? 'YOLOv11 • CAM-02' : 'YOLOv11 • CAM-01',
                   style: GoogleFonts.inter(
-                    color: AppTheme.tacticalAmber,
+                    color: AppTheme.uiAmber,
                     fontSize: widget.isModal ? 11 : 9,
                     fontWeight: FontWeight.bold,
                   ),
@@ -254,12 +254,12 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
                 decoration: BoxDecoration(
                   color: AppTheme.charcoalSurface,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.tacticalAmber.withValues(alpha: 0.5)),
+                  border: Border.all(color: AppTheme.uiAmber.withValues(alpha: 0.5)),
                 ),
                 child: Icon(
                   isCam2 ? Icons.phone_android_rounded : Icons.videocam_outlined,
                   size: 28,
-                  color: AppTheme.tacticalAmber,
+                  color: AppTheme.uiAmber,
                 ),
               ),
               const SizedBox(height: 10),
@@ -284,8 +284,8 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
               const SizedBox(height: 10),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.tacticalAmber,
-                  side: const BorderSide(color: AppTheme.tacticalAmber),
+                  foregroundColor: AppTheme.uiAmber,
+                  side: const BorderSide(color: AppTheme.uiAmber),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   visualDensity: VisualDensity.compact,
                 ),

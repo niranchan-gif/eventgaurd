@@ -20,8 +20,8 @@ class LiveFeedEvent {
   final DateTime timestamp;
   final Color badgeColor;
   final IconData icon;
-
-  LiveFeedEvent({
+  
+LiveFeedEvent({
     required this.id,
     required this.title,
     required this.cameraId,
@@ -73,7 +73,7 @@ class MockState extends ChangeNotifier {
   bool audibleSiren = true;
   bool autoPatrolDispatch = true;
   bool biometricConfirmation = false;
-  String languageProtocol = 'English (Military Nomenclature)';
+  String languageProtocol = 'English (Event Nomenclature)';
   String coordinatesStandard = 'WGS 84 / MGRS';
   String falseAlarmFilter = 'Aggressive (AI Multi-frame verification)';
 
@@ -263,12 +263,12 @@ class MockState extends ChangeNotifier {
 
         if (intrusionDetected) {
           totalBreachesDetected += 1;
-          if (!liveFeedEvents.any((e) => e.title.contains('INTRUSION') && now.difference(e.timestamp).inSeconds < 8)) {
+          if (!liveFeedEvents.any((e) => e.title.contains('INCIDENT') && now.difference(e.timestamp).inSeconds < 8)) {
             liveFeedEvents.insert(
               0,
               LiveFeedEvent(
                 id: 'EVT-${now.millisecondsSinceEpoch.toString().substring(8)}',
-                title: 'RESTRICTED PERIMETER INTRUSION BREACH',
+                title: 'RESTRICTED PERIMETER INCIDENT BREACH',
                 cameraId: 'CAM-001',
                 location: 'Sector 01 (Laptop Cam)',
                 confidence: 97,
@@ -350,15 +350,15 @@ class MockState extends ChangeNotifier {
           }
         }
 
-        // 1. Live Intrusion Breaches generated directly from CAM-01
+        // 1. Live Incident Breaches generated directly from CAM-01
         if (intrusionDetected) {
-          if (!alerts.any((a) => a.title.contains('Intrusion') && now.difference(a.detectedAt).inSeconds < 12)) {
+          if (!alerts.any((a) => a.title.contains('Incident') && now.difference(a.detectedAt).inSeconds < 12)) {
             final altId = 'ALT-${now.millisecondsSinceEpoch.toString().substring(8)}';
             alerts.insert(
               0,
               Alert(
                 id: altId,
-                title: 'CRITICAL: Perimeter Fence Intrusion in Sector 01',
+                title: 'CRITICAL: Perimeter Fence Incident in Sector 01',
                 severity: AlertSeverity.critical,
                 confidence: 96,
                 cameraId: 'CAM-001',
@@ -370,7 +370,7 @@ class MockState extends ChangeNotifier {
               0,
               Incident(
                 id: 'INC-${now.millisecondsSinceEpoch.toString().substring(8)}',
-                threatType: 'Perimeter Intrusion Breach',
+                threatType: 'Perimeter Incident Breach',
                 cameraId: 'CAM-001',
                 location: 'Sector 01',
                 severity: IncidentSeverity.critical,
@@ -548,7 +548,7 @@ class MockState extends ChangeNotifier {
 
   String get defconStatus {
     if (intrusionDetected) {
-      return 'DEFCON 1 • INTRUSION BREACH DETECTED';
+      return 'DEFCON 1 • INCIDENT BREACH DETECTED';
     }
     final persons = cam1Counts['person'] ?? 0;
     final vehicles = cam1Counts['vehicle'] ?? 0;
@@ -728,9 +728,9 @@ class MockState extends ChangeNotifier {
         location: sector,
         severity: IncidentSeverity.critical,
         detectedAt: now,
-        assignedTo: currentUser?.name ?? 'Commander Alpha',
+        assignedTo: currentUser?.name ?? 'Manager Alpha',
         confidence: 99,
-        notes: 'Rapid Tactical Patrol deployed to $sector by ${currentUser?.name ?? "Command"}. High-alert sector sweep underway.',
+        notes: 'Rapid Event Patrol deployed to $sector by ${currentUser?.name ?? "Command"}. High-alert sector sweep underway.',
         status: IncidentStatus.investigating,
       ),
     );
@@ -763,8 +763,8 @@ class MockState extends ChangeNotifier {
       return 'Please enter your Security Key / Password';
     }
 
-    // Direct match for Chief Tactical Commander for instant offline authorized bypass
-    if ((trimmedUser.toUpperCase() == 'VANCE-01' || trimmedUser.toLowerCase() == 'admin' || trimmedUser.toLowerCase() == 'commander') &&
+    // Direct match for Chief Event Manager for instant offline authorized bypass
+    if ((trimmedUser.toUpperCase() == 'VANCE-01' || trimmedUser.toLowerCase() == 'admin' || trimmedUser.toLowerCase() == 'manager') &&
         (trimmedPass.isNotEmpty)) {
       currentUser = UserModel.defaultCommander;
       isAuthenticated = true;
@@ -875,7 +875,7 @@ class MockState extends ChangeNotifier {
     audibleSiren = true;
     autoPatrolDispatch = true;
     biometricConfirmation = false;
-    languageProtocol = 'English (Military Nomenclature)';
+    languageProtocol = 'English (Event Nomenclature)';
     coordinatesStandard = 'WGS 84 / MGRS';
     falseAlarmFilter = 'Aggressive (AI Multi-frame verification)';
     notifyListeners();
