@@ -548,17 +548,17 @@ class MockState extends ChangeNotifier {
 
   String get defconStatus {
     if (intrusionDetected) {
-      return 'DEFCON 1 • INCIDENT BREACH DETECTED';
+      return 'SECURITY LEVEL 1 • INCIDENT BREACH DETECTED';
     }
     final persons = cam1Counts['person'] ?? 0;
     final vehicles = cam1Counts['vehicle'] ?? 0;
     if (persons > 0 || vehicles > 0) {
-      return 'DEFCON 3 • TARGET ACTIVITY IDENTIFIED';
+      return 'SECURITY LEVEL 3 • TARGET ACTIVITY IDENTIFIED';
     }
     if (!isCameraOn) {
       return 'STANDBY • CAM 01 HARDWARE MUTED';
     }
-    return 'DEFCON 4 • NORMAL VIGILANCE';
+    return 'SECURITY LEVEL 4 • NORMAL VIGILANCE';
   }
 
   Color get defconColor {
@@ -766,7 +766,7 @@ class MockState extends ChangeNotifier {
     // Direct match for Chief Event Manager for instant offline authorized bypass
     if ((trimmedUser.toUpperCase() == 'VANCE-01' || trimmedUser.toLowerCase() == 'admin' || trimmedUser.toLowerCase() == 'manager') &&
         (trimmedPass.isNotEmpty)) {
-      currentUser = UserModel.defaultCommander;
+      currentUser = UserModel.defaultSupervisor;
       isAuthenticated = true;
       notifyListeners();
       return null;
@@ -786,8 +786,8 @@ class MockState extends ChangeNotifier {
     }
   }
 
-  void instantCommanderLogin() {
-    currentUser = UserModel.defaultCommander;
+  void instantSupervisorLogin() {
+    currentUser = UserModel.defaultSupervisor;
     isAuthenticated = true;
     notifyListeners();
   }

@@ -281,7 +281,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                 _buildZoneDetail('Radar Pulse Sweep Rate', '3.5s Continuous Sweep'),
                 _buildZoneDetail('Sensor Latency', state.isBackendConnected ? '${(1000 / (state.cam1Fps > 0 ? state.cam1Fps : 30)).toStringAsFixed(0)}ms (Direct AI Link)' : 'Offline'),
                 _buildZoneDetail('Assigned Quick Reaction Team', 'Delta-9 Quick Reaction Unit'),
-                _buildZoneDetail('DEFCON Status', state.defconStatus.split('•').first.trim(), color: state.defconColor),
+                _buildZoneDetail('SECURITY LEVEL Status', state.defconStatus.split('•').first.trim(), color: state.defconColor),
                 const Spacer(),
                 // Dispatch Button with smooth hover animation
                 MouseRegion(

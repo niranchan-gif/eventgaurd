@@ -227,7 +227,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
 
-            // Dynamic DEFCON Status Pill
+            // Dynamic SECURITY LEVEL Status Pill
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(

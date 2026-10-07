@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import '../config/eventguard_config.dart';
 
 class BackendLauncher {
   static Process? _backendProcess;
@@ -22,7 +23,7 @@ class BackendLauncher {
     try {
       // 1. Check if backend is already responding
       if (await isBackendResponding()) {
-        debugPrint('[BACKEND] Python AI server is already active on http://127.0.0.1:5000');
+        debugPrint('[BACKEND] Python AI server is already active on ${EventGuardConfig.backendBaseUrl}');
         return;
       }
 
@@ -62,7 +63,7 @@ class BackendLauncher {
       for (int i = 0; i < 60; i++) {
         await Future.delayed(const Duration(milliseconds: 500));
         if (await isBackendResponding()) {
-          debugPrint('[BACKEND] Python AI server successfully synchronized on http://127.0.0.1:5000');
+          debugPrint('[BACKEND] Python AI server successfully synchronized on ${EventGuardConfig.backendBaseUrl}');
           break;
         }
       }
@@ -83,7 +84,7 @@ class BackendLauncher {
       // 1. Send clean HTTP shutdown request to release camera handles
       final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 500);
       try {
-        final req = await client.getUrl(Uri.parse('http://127.0.0.1:5000/api/shutdown'));
+        final req = await client.getUrl(Uri.parse('${EventGuardConfig.backendBaseUrl}/api/shutdown'));
         await req.close().timeout(const Duration(milliseconds: 600));
       } catch (_) {}
       client.close();
@@ -109,11 +110,11 @@ class BackendLauncher {
     }
   }
 
-  /// Checks if http://127.0.0.1:5000/api/telemetry is responding.
+  /// Checks if ${EventGuardConfig.backendBaseUrl}/api/telemetry is responding.
   static Future<bool> isBackendResponding() async {
     try {
       final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 400);
-      final req = await client.getUrl(Uri.parse('http://127.0.0.1:5000/api/telemetry'));
+      final req = await client.getUrl(Uri.parse('${EventGuardConfig.backendBaseUrl}/api/telemetry'));
       final res = await req.close().timeout(const Duration(milliseconds: 500));
       final success = res.statusCode == 200;
       client.close();
@@ -143,7 +144,7 @@ class BackendLauncher {
       }
     } catch (_) {}
 
-    // 3. Known project directory fallback
+
     final knownDir = Directory(r'd:\vscode\eventguard_ai');
     if (File('${knownDir.path}\\backend_server.py').existsSync()) {
       return knownDir;
@@ -156,9 +157,6 @@ class BackendLauncher {
   static String _resolvePythonExecutable(Directory projectDir) {
     final venvWin = File('${projectDir.path}\\venv\\Scripts\\python.exe');
     if (venvWin.existsSync()) return venvWin.path;
-
-    final knownVenv = File(r'd:\vscode\eventguard_ai\venv\Scripts\python.exe');
-    if (knownVenv.existsSync()) return knownVenv.path;
 
     final venvUnix = File('${projectDir.path}/venv/bin/python');
     if (venvUnix.existsSync()) return venvUnix.path;

@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:eventguard_ai/mock/mock_state.dart';
 import 'package:eventguard_ai/models/user_model.dart';
-import 'package:eventguard_ai/services/vault_encryption_service.dart';
+import 'package:eventguard_ai/services/secureStore_encryption_service.dart';
 
 void main() {
-  test('Strict Operator Registration & Encrypted Vault Authentication Test', () async {
+  test('Strict Operator Registration & Encrypted SecureStore Authentication Test', () async {
     final state = MockState();
 
     // 1. Initial State verification - App starts strictly unauthenticated, no dummy user
@@ -20,26 +20,26 @@ void main() {
 
     // 3. Test Register New Operator into operators.enc
     final regError = await state.registerOperator(
-      username: 'test_commander',
-      password: 'defense_secret_key_2026',
+      username: 'test_supervisor',
+      password: 'security_secret_key_2026',
       name: 'General Vikram Rao',
       role: 'Monitoring Manager',
-      clearanceLevel: 'LEVEL 5 • DEFCON-1 COMMAND',
+      clearanceLevel: 'LEVEL 5 • SECURITY LEVEL-1 COMMAND',
     );
     expect(regError, isNull);
     expect(state.isAuthenticated, true);
     expect(state.currentUser?.name, 'General Vikram Rao');
-    expect(state.currentUser?.callsign, 'test_commander');
+    expect(state.currentUser?.callsign, 'test_supervisor');
 
     // 4. Verify operators.enc exists and is encrypted (cannot be read as plain text JSON)
-    final vaultFile = File('operators.enc');
-    expect(await vaultFile.exists(), true);
-    final encryptedContent = await vaultFile.readAsString();
-    expect(encryptedContent.startsWith('BG_DEFENSE_VAULT_V1::'), true);
-    expect(encryptedContent.contains('defense_secret_key_2026'), false); // Password is never stored in plain text!
+    final secureStoreFile = File('operators.enc');
+    expect(await secureStoreFile.exists(), true);
+    final encryptedContent = await secureStoreFile.readAsString();
+    expect(encryptedContent.startsWith('EG_SECURITY_SECURE_STORE_V1::'), true);
+    expect(encryptedContent.contains('security_secret_key_2026'), false); // Password is never stored in plain text!
 
     // Decrypt and verify
-    final decrypted = VaultEncryptionService.decryptString(encryptedContent);
+    final decrypted = SecureStoreEncryptionService.decryptString(encryptedContent);
     expect(decrypted.contains('General Vikram Rao'), true);
 
     // 5. Test Logging in again with newly registered operator
@@ -47,12 +47,12 @@ void main() {
     expect(state.isAuthenticated, false);
 
     // Wrong password test
-    final wrongPassResult = await state.loginWithUsernameAndPassword('test_commander', 'wrong_pass');
+    final wrongPassResult = await state.loginWithUsernameAndPassword('test_supervisor', 'wrong_pass');
     expect(wrongPassResult, isNotNull);
     expect(state.isAuthenticated, false);
 
     // Correct password test
-    final validLogin = await state.loginWithUsernameAndPassword('test_commander', 'defense_secret_key_2026');
+    final validLogin = await state.loginWithUsernameAndPassword('test_supervisor', 'security_secret_key_2026');
     expect(validLogin, isNull);
     expect(state.isAuthenticated, true);
     expect(state.currentUser?.name, 'General Vikram Rao');
@@ -71,9 +71,9 @@ void main() {
     expect(state.currentUser?.name, 'Niranchan (Lead)');
     expect(state.currentUser?.provider, AuthProvider.github);
 
-    // Clean up test vault file if created in cwd
-    if (await vaultFile.exists()) {
-      await vaultFile.delete();
+    // Clean up test secureStore file if created in cwd
+    if (await secureStoreFile.exists()) {
+      await secureStoreFile.delete();
     }
 
     state.dispose();

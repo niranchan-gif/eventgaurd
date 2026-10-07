@@ -13,8 +13,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   // Authentication Form Controllers - prefilled with primary Manager for instant authorized access
-  final TextEditingController _userController = TextEditingController(text: 'VANCE-01');
-  final TextEditingController _passController = TextEditingController(text: 'Defense2026!');
+  final TextEditingController _userController = TextEditingController(text: '');
+  final TextEditingController _passController = TextEditingController(text: '');
 
   // Registration Form Controllers
   final TextEditingController _regUserController = TextEditingController();
@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   final TextEditingController _regConfirmPassController = TextEditingController();
   final TextEditingController _regNameController = TextEditingController();
   final TextEditingController _regRoleController = TextEditingController(text: 'Perimeter Management Officer');
-  String _regClearance = 'LEVEL 3 • FIELD OPERATOR';
+  String _regClearance = 'LEVEL 3 • EVENT SECURITY OPERATOR';
 
   bool _isRegisterMode = false;
   bool _rememberMe = true;
@@ -276,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                         const SizedBox(height: 16),
 
-                        // Classified Security Vault Status Indicator (Pure Event Management)
+                        // Classified Security SecureStore Status Indicator (Pure Event Management)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                           decoration: BoxDecoration(
@@ -307,7 +307,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  'EVENT SECURITY VAULT: ACTIVE • CLASSIFIED LEVEL 5',
+                                  'EVENT SECURITY SECURE_STORE: ACTIVE • CLASSIFIED LEVEL 5',
                                   style: GoogleFonts.jetBrainsMono(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w700,
@@ -820,9 +820,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
                             ),
                             items: const [
-                              DropdownMenuItem(value: 'LEVEL 3 • FIELD OPERATOR', child: Text('LEVEL 3 • FIELD OPERATOR')),
+                              DropdownMenuItem(value: 'LEVEL 3 • EVENT SECURITY OPERATOR', child: Text('LEVEL 3 • EVENT SECURITY OPERATOR')),
                               DropdownMenuItem(value: 'LEVEL 4 • RAPID RESPONSE', child: Text('LEVEL 4 • RAPID RESPONSE')),
-                              DropdownMenuItem(value: 'LEVEL 5 • DEFCON-1 COMMAND', child: Text('LEVEL 5 • DEFCON-1 COMMAND')),
+                              DropdownMenuItem(value: 'LEVEL 5 • SECURITY LEVEL-1 COMMAND', child: Text('LEVEL 5 • SECURITY LEVEL-1 COMMAND')),
                               DropdownMenuItem(value: 'LEVEL 5 • ROOT HQ ARCHITECT', child: Text('LEVEL 5 • ROOT HQ ARCHITECT')),
                             ],
                             onChanged: (v) {

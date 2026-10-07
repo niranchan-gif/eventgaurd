@@ -2,46 +2,46 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import '../models/user_model.dart';
-import 'vault_encryption_service.dart';
+import 'secureStore_encryption_service.dart';
+import '../config/eventguard_config.dart';
 
 class GitHubAuthService {
-  static const String defaultRepoOwner = 'niranchan-gif';
-  static const String defaultRepoName = 'Bordergaurdai';
-  static const String encryptedVaultFileName = 'operators.enc';
+  
+  static const String encryptedSecureStoreFileName = 'operators.enc';
 
   static String? _savedToken;
   static String? get savedToken => _savedToken;
 
   /// Resolves the local operators.enc file path in the repository
-  static File _getLocalVaultFile() {
+  static File _getLocalSecureStoreFile() {
     final cwd = Directory.current.path;
-    final file = File('$cwd/$encryptedVaultFileName');
+    final file = File('$cwd/$encryptedSecureStoreFileName');
     if (file.existsSync()) return file;
 
-    final parentFile = File('$cwd/../$encryptedVaultFileName');
+    final parentFile = File('$cwd/../$encryptedSecureStoreFileName');
     if (parentFile.existsSync()) return parentFile;
 
     return file;
   }
 
   /// Loads and decrypts the operator credentials list from operators.enc
-  /// Strictly NO dummy accounts. If vault doesn't exist, returns empty list.
+  /// Strictly NO dummy accounts. If secureStore doesn't exist, returns empty list.
   static Future<List<Map<String, dynamic>>> loadOperators({bool checkRemote = false}) async {
-    final file = _getLocalVaultFile();
+    final file = _getLocalSecureStoreFile();
 
     // 1. Try reading and decrypting local repository encrypted file
     if (await file.exists()) {
       try {
         final encryptedData = await file.readAsString();
         if (encryptedData.trim().isNotEmpty) {
-          final decryptedJson = VaultEncryptionService.decryptString(encryptedData);
+          final decryptedJson = SecureStoreEncryptionService.decryptString(encryptedData);
           final dynamic parsed = json.decode(decryptedJson);
           if (parsed is List) {
             return parsed.map((e) => Map<String, dynamic>.from(e as Map)).toList();
           }
         }
       } catch (e) {
-        // Vault corrupt or decrypt issue
+        // SecureStore corrupt or decrypt issue
         return [];
       }
     }
@@ -51,14 +51,14 @@ class GitHubAuthService {
       try {
         final client = HttpClient()..connectionTimeout = const Duration(seconds: 3);
         final rawUrl = Uri.parse(
-          'https://raw.githubusercontent.com/$defaultRepoOwner/$defaultRepoName/main/$encryptedVaultFileName',
+          'https://raw.githubusercontent.com/${EventGuardConfig.githubOwner}/${EventGuardConfig.githubRepo}/main/$encryptedSecureStoreFileName',
         );
         final request = await client.getUrl(rawUrl);
         request.headers.set('User-Agent', 'EventGuard-AI-Management/1.0');
         final response = await request.close().timeout(const Duration(seconds: 3));
         if (response.statusCode == 200) {
           final encryptedContent = await response.transform(utf8.decoder).join();
-          final decryptedJson = VaultEncryptionService.decryptString(encryptedContent);
+          final decryptedJson = SecureStoreEncryptionService.decryptString(encryptedContent);
           final dynamic parsed = json.decode(decryptedJson);
           if (parsed is List) {
             final list = parsed.map((e) => Map<String, dynamic>.from(e as Map)).toList();
@@ -95,7 +95,7 @@ class GitHubAuthService {
         bool isMatch = false;
 
         if (salt != null && passwordHash != null) {
-          final computedHash = VaultEncryptionService.hashPassword(trimmedPass, salt);
+          final computedHash = SecureStoreEncryptionService.hashPassword(trimmedPass, salt);
           isMatch = (computedHash == passwordHash);
         } else if (rawPassword != null) {
           isMatch = (rawPassword == trimmedPass);
@@ -119,7 +119,7 @@ class GitHubAuthService {
     return null;
   }
 
-  /// Registers a new operator, encrypts the entire vault, and saves operators.enc into the Git repository
+  /// Registers a new operator, encrypts the entire secureStore, and saves operators.enc into the Git repository
   static Future<UserModel> registerOperator({
     required String username,
     required String password,
@@ -144,8 +144,8 @@ class GitHubAuthService {
     }
 
     // Generate cryptographic salt and hash
-    final salt = VaultEncryptionService.generateSalt();
-    final passwordHash = VaultEncryptionService.hashPassword(password.trim(), salt);
+    final salt = SecureStoreEncryptionService.generateSalt();
+    final passwordHash = SecureStoreEncryptionService.hashPassword(password.trim(), salt);
 
     final newId = 'OP-${(operators.length + 1).toString().padLeft(3, '0')}';
     final newRecord = {
@@ -163,16 +163,16 @@ class GitHubAuthService {
 
     operators.add(newRecord);
 
-    // Encrypt the updated list with event vault encryption
+    // Encrypt the updated list with event secureStore encryption
     final jsonPayload = const JsonEncoder.withIndent('  ').convert(operators);
-    final encryptedData = VaultEncryptionService.encryptString(jsonPayload);
+    final encryptedData = SecureStoreEncryptionService.encryptString(jsonPayload);
 
     // Save to operators.enc in the local GitHub repository
-    final file = _getLocalVaultFile();
+    final file = _getLocalSecureStoreFile();
     await file.writeAsString(encryptedData);
 
     // Stage in Git repository automatically
-    _stageVaultInGit();
+    // Removed Git staging
 
     return UserModel(
       id: newId,
@@ -184,13 +184,6 @@ class GitHubAuthService {
       avatarUrl: null,
       provider: AuthProvider.password,
     );
-  }
-
-  /// Runs background git staging for operators.enc
-  static void _stageVaultInGit() async {
-    try {
-      await Process.run('git', ['add', encryptedVaultFileName]);
-    } catch (_) {}
   }
 
   /// Authenticates using a GitHub Personal Access Token directly with api.github.com

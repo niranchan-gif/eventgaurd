@@ -32,7 +32,7 @@ class UserModel {
   }
 
   // Default auto-initialized manager profile for zero-manual instant boot
-  static const UserModel defaultCommander = UserModel(
+  static const UserModel defaultSupervisor = UserModel(
     id: 'OP-MANAGER-01',
     name: 'Manager Sarah Vance',
     callsign: 'VANCE-01',

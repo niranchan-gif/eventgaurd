@@ -32,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // Step 2: Auto-Authentication of Management Manager
     await Future.delayed(const Duration(milliseconds: 700));
     if (mounted) {
-      context.read<MockState>().instantCommanderLogin();
+      context.read<MockState>().instantSupervisorLogin();
       setState(() {
         _bootStatus = 'AUTOMATIC BIOMETRIC CLEARANCE: MANAGER SARAH VANCE...';
       });
