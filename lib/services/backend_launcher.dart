@@ -6,66 +6,56 @@ import '../config/eventguard_config.dart';
 
 class BackendLauncher {
   static Process? _backendProcess;
+  static Process? _wsProcess;
   static int? _backendPid;
+  static int? _wsPid;
   static bool _isStarting = false;
   static Completer<void>? _startCompleter;
 
   static bool get isStarting => _isStarting;
 
-  /// Ensures that the Python AI server is actively running.
-  /// Launches backend_server.py if not already active.
   static Future<void> ensureBackendRunning() async {
-    if (_isStarting) {
-      debugPrint('[BACKEND] Launch already in progress, awaiting startup...');
-      return _startCompleter?.future;
-    }
+    if (_isStarting) return _startCompleter?.future;
 
     try {
-      // 1. Check if backend is already responding
-      if (await isBackendResponding()) {
-        debugPrint('[BACKEND] Python AI server is already active on ${EventGuardConfig.backendBaseUrl}');
-        return;
-      }
-
       _isStarting = true;
       _startCompleter = Completer<void>();
 
-      // 2. Kill any stale/orphaned process lingering on port 5000
-      await _killStaleProcessOnPort5000();
+      await _killStaleProcessOnPort(5000);
+      await _killStaleProcessOnPort(8765);
 
-      // 3. Resolve Project Directory & Python executable
       final projectDir = _resolveProjectDirectory();
       final pythonExe = _resolvePythonExecutable(projectDir);
-      debugPrint('[BACKEND] Resolved Project Directory: ${projectDir.path}');
-      debugPrint('[BACKEND] Auto-launching Python backend with: $pythonExe ...');
 
-      // 4. Start backend_server.py managed by Flutter with unbuffered (-u) streaming
-      final process = await Process.start(
+      // Start WebSockets Demo Server
+      _wsProcess = await Process.start(
         pythonExe,
-        ['-u', 'backend_server.py'],
+        ['-u', 'demo_websocket_server.py'],
         workingDirectory: projectDir.path,
         runInShell: Platform.isWindows,
       );
+      _wsPid = _wsProcess?.pid;
+      
+      _wsProcess?.stdout.transform(utf8.decoder).listen((line) => debugPrint('[WS] ${line.trim()}'));
+      _wsProcess?.stderr.transform(utf8.decoder).listen((line) => debugPrint('[WS ERR] ${line.trim()}'));
 
-      _backendProcess = process;
-      _backendPid = process.pid;
-      debugPrint('[BACKEND] Python server process started (PID: $_backendPid). Awaiting model warmup...');
-
-      // Capture stdout & stderr for debugging
-      process.stdout.transform(utf8.decoder).listen((line) {
-        debugPrint('[PYTHON] ${line.trim()}');
-      });
-      process.stderr.transform(utf8.decoder).listen((line) {
-        debugPrint('[PYTHON ERR] ${line.trim()}');
-      });
-
-      // 5. Poll until port 5000 responds (up to 30 seconds for YOLO model warmup)
-      for (int i = 0; i < 60; i++) {
-        await Future.delayed(const Duration(milliseconds: 500));
-        if (await isBackendResponding()) {
-          debugPrint('[BACKEND] Python AI server successfully synchronized on ${EventGuardConfig.backendBaseUrl}');
-          break;
-        }
+      // Start AI Camera Backend
+      if (!(await isBackendResponding())) {
+          _backendProcess = await Process.start(
+            pythonExe,
+            ['-u', 'backend_server.py'],
+            workingDirectory: projectDir.path,
+            runInShell: Platform.isWindows,
+          );
+          _backendPid = _backendProcess?.pid;
+          
+          _backendProcess?.stdout.transform(utf8.decoder).listen((line) => debugPrint('[AI] ${line.trim()}'));
+          _backendProcess?.stderr.transform(utf8.decoder).listen((line) => debugPrint('[AI ERR] ${line.trim()}'));
+          
+          for (int i = 0; i < 60; i++) {
+            await Future.delayed(const Duration(milliseconds: 500));
+            if (await isBackendResponding()) break;
+          }
       }
     } catch (e) {
       debugPrint('[BACKEND LAUNCH ERROR] $e');
@@ -77,11 +67,8 @@ class BackendLauncher {
     }
   }
 
-  /// Terminates the Python AI server when the Flutter app/dashboard closes.
   static Future<void> shutdownBackend() async {
-    debugPrint('[BACKEND] Initiating shutdown of Python AI backend...');
     try {
-      // 1. Send clean HTTP shutdown request to release camera handles
       final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 500);
       try {
         final req = await client.getUrl(Uri.parse('${EventGuardConfig.backendBaseUrl}/api/shutdown'));
@@ -89,28 +76,17 @@ class BackendLauncher {
       } catch (_) {}
       client.close();
 
-      // 2. Kill tracked child process directly
-      if (_backendProcess != null) {
-        _backendProcess!.kill(ProcessSignal.sigkill);
-      }
+      _backendProcess?.kill(ProcessSignal.sigkill);
+      _wsProcess?.kill(ProcessSignal.sigkill);
 
-      // 3. Windows failsafe: Taskkill PID tree
-      if (Platform.isWindows && _backendPid != null) {
-        await Process.run('taskkill', ['/F', '/T', '/PID', '$_backendPid']);
-      }
+      if (Platform.isWindows && _backendPid != null) await Process.run('taskkill', ['/F', '/T', '/PID', '$_backendPid']);
+      if (Platform.isWindows && _wsPid != null) await Process.run('taskkill', ['/F', '/T', '/PID', '$_wsPid']);
 
-      // 4. Guarantee port 5000 is completely freed
-      await _killStaleProcessOnPort5000();
-
-      _backendProcess = null;
-      _backendPid = null;
-      debugPrint('[BACKEND] Python AI backend terminated successfully.');
-    } catch (e) {
-      debugPrint('[BACKEND SHUTDOWN ERROR] $e');
-    }
+      await _killStaleProcessOnPort(5000);
+      await _killStaleProcessOnPort(8765);
+    } catch (e) {}
   }
 
-  /// Checks if ${EventGuardConfig.backendBaseUrl}/api/telemetry is responding.
   static Future<bool> isBackendResponding() async {
     try {
       final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 400);
@@ -124,62 +100,39 @@ class BackendLauncher {
     }
   }
 
-  /// Traverses up from the executable or current working dir to locate backend_server.py
   static Directory _resolveProjectDirectory() {
-    // 1. Check Directory.current
-    if (File('${Directory.current.path}/backend_server.py').existsSync()) {
-      return Directory.current;
-    }
-
-    // 2. Search parent directories from Platform.resolvedExecutable
+    if (File('${Directory.current.path}/demo_websocket_server.py').existsSync()) return Directory.current;
     try {
       var dir = File(Platform.resolvedExecutable).parent;
       for (int i = 0; i < 10; i++) {
-        if (File('${dir.path}/backend_server.py').existsSync()) {
-          return dir;
-        }
+        if (File('${dir.path}/demo_websocket_server.py').existsSync()) return dir;
         final parent = dir.parent;
         if (parent.path == dir.path) break;
         dir = parent;
       }
     } catch (_) {}
-
-
-    final knownDir = Directory(r'd:\vscode\eventguard_ai');
-    if (File('${knownDir.path}\\backend_server.py').existsSync()) {
-      return knownDir;
-    }
-
     return Directory.current;
   }
 
-  /// Resolves the preferred Python binary (local virtualenv or system python).
   static String _resolvePythonExecutable(Directory projectDir) {
-    final venvWin = File('${projectDir.path}\\venv\\Scripts\\python.exe');
+    final venvWin = File('${projectDir.path}/venv/Scripts/python.exe');
     if (venvWin.existsSync()) return venvWin.path;
-
-    final venvUnix = File('${projectDir.path}/venv/bin/python');
-    if (venvUnix.existsSync()) return venvUnix.path;
-
+    final venvWinAlt = File('${projectDir.path}\\venv\\Scripts\\python.exe');
+    if (venvWinAlt.existsSync()) return venvWinAlt.path;
     return 'python';
   }
 
-  /// Finds any process listening on port 5000 and kills it to prevent conflicts.
-  static Future<void> _killStaleProcessOnPort5000() async {
+  static Future<void> _killStaleProcessOnPort(int port) async {
     if (!Platform.isWindows) return;
     try {
-      final result = await Process.run('cmd', ['/c', 'netstat -ano | findstr :5000.*LISTENING']);
+      final result = await Process.run('cmd', ['/c', 'netstat -ano | findstr :$port.*LISTENING']);
       final output = (result.stdout as String).trim();
       if (output.isNotEmpty) {
-        final lines = output.split('\n');
-        for (final line in lines) {
+        for (final line in output.split('\n')) {
           final parts = line.trim().split(RegExp(r'\s+'));
           if (parts.isNotEmpty) {
             final pid = parts.last;
-            if (int.tryParse(pid) != null) {
-              debugPrint('[BACKEND] Reclaiming port 5000 from lingering PID $pid...');
-              await Process.run('taskkill', ['/F', '/T', '/PID', pid]);
-            }
+            if (int.tryParse(pid) != null) await Process.run('taskkill', ['/F', '/T', '/PID', pid]);
           }
         }
       }

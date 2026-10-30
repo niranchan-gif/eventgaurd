@@ -25,16 +25,16 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
       setState(() {
-        _bootStatus = 'COMMENCING HARDWARE LINK: CAM-01 [LAPTOP] & CAM-02 [PHONE RECON]...';
+        _bootStatus = 'COMMENCING HARDWARE LINK: CAM-01 [MAIN ENTRANCE] & CAM-02 [MOBILE STEWARD]...';
       });
     }
 
-    // Step 2: Auto-Authentication of Management Manager
+    // Step 2: Auto-Authentication of Safety Operations Supervisor
     await Future.delayed(const Duration(milliseconds: 700));
     if (mounted) {
-      context.read<MockState>().instantSupervisorLogin();
+      context.read<MockState>().loginAsSupervisor();
       setState(() {
-        _bootStatus = 'AUTOMATIC BIOMETRIC CLEARANCE: MANAGER SARAH VANCE...';
+        _bootStatus = 'AUTHENTICATION VERIFIED: SARAH CONNER (CHIEF SAFETY OFFICER)...';
       });
     }
 
@@ -101,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 border: Border.all(color: AppTheme.hairlineBorder),
               ),
               child: Text(
-                'EVENT PERIMETER MANAGEMENT & INTELLIGENCE SUITE',
+                'EVENT CROWD SAFETY & SITUATIONAL INTELLIGENCE SUITE',
                 style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.uiAmber, letterSpacing: 1.0),
               ),
             ),

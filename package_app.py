@@ -212,7 +212,7 @@ STEP 2:
    the AI backend!
 
 ----------------------------------------------------------------
-ADVANCED / DEBUGGING:
+ADEVENTD / DEBUGGING:
 ----------------------------------------------------------------
 If you want to view live backend AI logs in a visible terminal window:
    Double-click:  start_backend_debug.bat

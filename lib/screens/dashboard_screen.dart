@@ -69,14 +69,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. Event Command & Sector Header
-            _buildMilitaryHeader(state),
+            _buildSecurityHeader(state),
             const SizedBox(height: 20),
 
             // 2. 4-Card Event Readiness Deck
             _buildReadinessDeck(state),
             const SizedBox(height: 20),
 
-            // 3. Main Split Deck: Left Hero Viewport (6) + Right Threat Operations (4)
+            // 3. Interactive Crowd Density Simulator & Person Count Demo Controller
+            _buildCrowdDensityDemoController(state),
+            const SizedBox(height: 20),
+
+            // 4. Main Split Deck: Left Hero Viewport (6) + Right Threat Operations (4)
             LayoutBuilder(
               builder: (context, constraints) {
                 if (constraints.maxWidth < 980) {
@@ -115,7 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // --- 1. Event Header Bar ---
-  Widget _buildMilitaryHeader(MockState state) {
+  Widget _buildSecurityHeader(MockState state) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final bool isCompact = constraints.maxWidth < 980;
@@ -174,7 +178,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    'SECTOR 07 • NORTHERN CORRIDOR | COORD: 34°12\'44"N 74°28\'10"E | REAL-TIME OPTICAL SENSORS',
+                    'ZONE A • MAIN ENTRANCE CONCOURSE | COORD: GATE 1-4 PLAZA | REAL-TIME CROWD SAFETY',
                     style: GoogleFonts.inter(
                       color: AppTheme.mutedSilver,
                       fontSize: 11,
@@ -321,23 +325,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             _buildEventKpiCard(
               width: cardWidth,
-              title: 'PERIMETER MANAGEMENT',
-              value: hasBreach ? 'BREACH FLAGGED' : 'ARMED & SECURE',
-              subtitle: hasBreach ? 'Sector 01 Incursion Active' : 'Tripwire AI Active • 0 Bypasses',
+              title: 'VENUE CROWD SAFETY',
+              value: hasBreach ? 'SURGE FLAGGED' : 'FLOW NOMINAL',
+              subtitle: hasBreach ? 'Zone A Density Spike Active' : 'Crowd Flow Monitored • 0 Stampede Risk',
               icon: hasBreach ? Icons.warning_rounded : Icons.verified_user_rounded,
               color: hasBreach ? AppTheme.alertRed : AppTheme.radarGreen,
             ),
             _buildEventKpiCard(
               width: cardWidth,
-              title: 'ACTIVE TARGETS IN SECTOR',
-              value: totalTargets > 0 ? '$personCount PERSONS • $vehicleCount VEHICLES' : '0 INTRUDERS',
-              subtitle: 'YOLOv11 Real-Time Vision Feed',
-              icon: Icons.track_changes_rounded,
-              color: totalTargets > 0 ? AppTheme.uiAmber : AppTheme.radarGreen,
+              title: 'ATTENDEES IN ZONE',
+              value: totalTargets > 0 ? '$personCount ATTENDEES • $vehicleCount CARTS' : '0 ATTENDEES',
+              subtitle: state.isManualPersonOverride ? 'Demo Simulator Override Active' : 'YOLOv11 Crowd Detection Feed',
+              icon: Icons.groups_rounded,
+              color: personCount >= 20 ? AppTheme.alertRed : (personCount >= 8 ? AppTheme.uiAmber : AppTheme.radarGreen),
             ),
             _buildEventKpiCard(
               width: cardWidth,
-              title: 'OPTICAL SENSOR CAM-01',
+              title: 'VENUE CAMERA CAM-01',
               value: state.isCameraOn ? '${state.cam1Fps.toStringAsFixed(0)} FPS • 1080p' : 'HARDWARE STANDBY',
               subtitle: state.isCameraOn ? 'Latency: ${state.liveLatencyMs}ms • Direct Stream' : 'Camera Sensor Powered Off',
               icon: state.isCameraOn ? Icons.videocam_rounded : Icons.power_settings_new,
@@ -345,10 +349,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             _buildEventKpiCard(
               width: cardWidth,
-              title: 'NEURAL AI PIPELINE',
+              title: 'CROWD AI PIPELINE',
               value: state.activeAiMode.toUpperCase(),
-              subtitle: 'Tripwire + Haar Face Biometrics',
-              icon: Icons.memory_rounded,
+              subtitle: 'GRA Grid + Density & Flow Engine',
+              icon: Icons.grid_view_rounded,
               color: const Color(0xFF60A5FA),
             ),
           ],
@@ -495,9 +499,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      _buildChannelSelectorChip(state, 'CAM-01 • LAPTOP', 'CAM-001', state.cam1DeviceName),
+                      _buildChannelSelectorChip(state, 'CAM-01 • MAIN ENTRANCE', 'CAM-001', state.cam1DeviceName),
                       const SizedBox(width: 6),
-                      _buildChannelSelectorChip(state, 'CAM-02 • PHONE RECON', 'CAM-002', state.cam2DeviceName),
+                      _buildChannelSelectorChip(state, 'CAM-02 • MOBILE STEWARD', 'CAM-002', state.cam2DeviceName),
                       const SizedBox(width: 8),
                       ElevatedButton.icon(
                         onPressed: () async {
@@ -525,7 +529,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // Quick phone source config button
                       IconButton(
                         icon: const Icon(Icons.usb_rounded, size: 16, color: AppTheme.uiAmber),
-                        tooltip: 'Configure Phone Camera Source (Direct USB / IP)',
+                        tooltip: 'Configure Mobile Steward Camera Source (Direct USB / IP)',
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () => _showCameraSourceDialog(context, state),
@@ -583,7 +587,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ],
                                 ),
                                 child: Text(
-                                  'PERIMETER BREACH ACTIVE',
+                                  'CROWD SURGE RISK ACTIVE',
                                   style: GoogleFonts.inter(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -603,7 +607,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ],
                                 ),
                                 child: Text(
-                                  '$personCount HUMAN • $vehicleCount VEHICLE DETECTED',
+                                  '$personCount ATTENDEES • $vehicleCount CARTS IN FRAME',
                                   style: GoogleFonts.inter(
                                     color: AppTheme.obsidianBlack,
                                     fontSize: 10,
@@ -621,7 +625,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   border: Border.all(color: AppTheme.radarGreen.withValues(alpha: 0.7)),
                                 ),
                                 child: Text(
-                                  'SECTOR SECURE • TRIPWIRE ARMED',
+                                  'ZONE NOMINAL • CROWD FLOW NORMAL',
                                   style: GoogleFonts.inter(
                                     color: AppTheme.radarGreen,
                                     fontSize: 9,
@@ -663,13 +667,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // AI Mode selector chips
                       _buildAiChip(state, 'ALL-DOMAIN', 'all'),
                       const SizedBox(width: 6),
-                      _buildAiChip(state, 'HUMAN', 'person'),
+                      _buildAiChip(state, 'ATTENDEE', 'person'),
                       const SizedBox(width: 6),
-                      _buildAiChip(state, 'VEHICLE', 'vehicle'),
+                      _buildAiChip(state, 'CARTS', 'vehicle'),
                       const SizedBox(width: 6),
                       _buildAiChip(state, 'FACE ID', 'face'),
                       const SizedBox(width: 6),
-                      _buildAiChip(state, 'TRIPWIRE', 'fence'),
+                      _buildAiChip(state, 'FLOW GATE', 'fence'),
 
                       const SizedBox(width: 14),
 
@@ -857,7 +861,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const Icon(Icons.usb_rounded, color: AppTheme.uiAmber, size: 20),
               const SizedBox(width: 8),
               Text(
-                'PHONE RECON CAMERA SOURCE CONFIG',
+                'MOBILE STEWARD CAMERA SOURCE CONFIG',
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w900,
@@ -874,7 +878,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Assign hardware device index or stream URL for CAM-02 (Mobile Recon Node):',
+                  'Assign hardware device index or stream URL for CAM-02 (Mobile Steward Feed):',
                   style: GoogleFonts.inter(fontSize: 11, color: AppTheme.mutedSilver),
                 ),
                 const SizedBox(height: 14),
@@ -1047,7 +1051,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        'REAL-TIME OPTICAL INCIDENT WAVEFORM (TELEMETRY)',
+                        'REAL-TIME CROWD FLOW & DENSITY WAVEFORM (TELEMETRY)',
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
@@ -1069,7 +1073,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   border: Border.all(color: primaryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
-                  hasBreach ? 'BREACH DETECTED' : 'STREAM NOMINAL',
+                  hasBreach ? 'SURGE DETECTED' : 'FLOW NOMINAL',
                   style: GoogleFonts.inter(
                     color: primaryColor,
                     fontSize: 9,
@@ -1141,12 +1145,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildStatPill('Humans', '${state.cam1Counts['person'] ?? 0}'),
-                _buildStatPill('Vehicles', '${state.cam1Counts['vehicle'] ?? 0}'),
+                _buildStatPill('Attendees', '${state.cam1Counts['person'] ?? 0}'),
+                _buildStatPill('Carts', '${state.cam1Counts['vehicle'] ?? 0}'),
                 _buildStatPill('Animals', '${state.cam1Counts['animal'] ?? 0}'),
                 _buildStatPill('Faces', '${state.cam1Counts['face'] ?? 0}'),
                 _buildStatPill('Bitrate', '${state.liveBitrateKbps.toStringAsFixed(0)} Kbps'),
-                _buildStatPill('Security', 'SECURE'),
+                _buildStatPill('Status', 'NORMAL'),
               ],
             ),
           ),
@@ -1173,7 +1177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Live Threat Incursions Card
+        // Live Event Crowd Alert Card
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1194,7 +1198,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(
-                            'LIVE PERIMETER THREAT LOG',
+                            'LIVE EVENT CROWD ALERT LOG',
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
@@ -1258,7 +1262,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'ALL SECTORS SECURE',
+                              'ALL VENUE ZONES SAFE',
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 12,
@@ -1267,7 +1271,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Optical stream CAM-01 active. No unauthorized boundary crossings detected.',
+                              'Optical stream CAM-01 active. Crowd monitoring and neural grid active.',
                               style: GoogleFonts.inter(
                                 fontSize: 10,
                                 color: AppTheme.mutedSilver,
@@ -1286,7 +1290,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 18),
 
-        // QRT Quick Deployment Deck
+        // Steward Quick Deployment Deck
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1299,11 +1303,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.military_tech_rounded, size: 20, color: AppTheme.uiAmber),
+                  const Icon(Icons.security, size: 20, color: AppTheme.uiAmber),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
-                      'QUICK REACTION TEAM (QRT) COMMAND',
+                      'VENUE STEWARDS & SAFETY TEAM DISPATCH',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
@@ -1317,7 +1321,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Rapid event deployment to active coordinates',
+                'Rapid steward deployment to active venue zones',
                 style: GoogleFonts.inter(fontSize: 11, color: AppTheme.mutedSilver),
               ),
               const SizedBox(height: 14),
@@ -1332,11 +1336,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 child: Column(
                   children: [
-                    _buildSectorStatusRow('Sector 01 (Command Post)', 'PATROL ON POST', AppTheme.radarGreen),
+                    _buildSectorStatusRow('Zone A (Main Entrance Concourse)', 'STEWARDS ON POST', AppTheme.radarGreen),
                     const Divider(color: AppTheme.subtleBorder, height: 12),
-                    _buildSectorStatusRow('Sector 02 (Eastern Ridge)', 'PATROL READY', AppTheme.uiAmber),
+                    _buildSectorStatusRow('Zone B (Central Arena & Stage)', 'STEWARDS READY', AppTheme.uiAmber),
                     const Divider(color: AppTheme.subtleBorder, height: 12),
-                    _buildSectorStatusRow('Sector 03 (Northern Pass)', 'UAV MONITORED', AppTheme.radarGreen),
+                    _buildSectorStatusRow('Zone C (Food Plaza & Exit Corridor)', 'MONITORED', AppTheme.radarGreen),
                   ],
                 ),
               ),
@@ -1350,7 +1354,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       onPressed: () => _deployQrt(context, state),
                       icon: const Icon(Icons.send_rounded, size: 16, color: AppTheme.obsidianBlack),
                       label: Text(
-                        'DISPATCH QRT PATROL',
+                        'DISPATCH SAFETY STEWARDS',
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w900,
                           fontSize: 11,
@@ -1371,7 +1375,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       state.toggleAudibleSiren(!state.audibleSiren);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(state.audibleSiren ? 'PERIMETER SIREN ARMED' : 'PERIMETER SIREN MUTED'),
+                          content: Text(state.audibleSiren ? 'VENUE ALERT SIREN ARMED' : 'VENUE ALERT SIREN MUTED'),
                           backgroundColor: AppTheme.charcoalElevated,
                           duration: const Duration(seconds: 2),
                         ),
@@ -1423,7 +1427,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   border: Border.all(color: accentColor.withValues(alpha: 0.6)),
                 ),
                 child: Text(
-                  isCritical ? 'CRITICAL ALPHA' : 'PRIORITY BRAVO',
+                  isCritical ? 'CRITICAL SURGE' : 'ELEVATED FLOW',
                   style: GoogleFonts.inter(
                     fontSize: 8,
                     fontWeight: FontWeight.w900,
@@ -1504,10 +1508,402 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildCrowdDensityDemoController(MockState state) {
+    final int personCount = state.cam1Counts['person'] ?? 0;
+    final bool isCritical = personCount >= 20 || state.intrusionDetected;
+    final bool isElevated = personCount >= 8 && !isCritical;
+    final Color tierColor = isCritical
+        ? AppTheme.alertRed
+        : (isElevated ? AppTheme.uiAmber : AppTheme.radarGreen);
+
+    final String tierTitle = isCritical
+        ? 'CRITICAL CROWD SURGE RISK'
+        : (isElevated ? 'MODERATE ATTENDEE INFLUX' : 'NORMAL ATTENDEE FLOW');
+
+    final String tierSubtitle = isCritical
+        ? 'Severe bottleneck & stampede hazard detected • Rapid steward dispatch required'
+        : (isElevated
+            ? 'Rising crowd density detected in Zone A concourse • Proactive monitoring recommended'
+            : 'Safe attendee density • Egress corridors clear • No stampede or bottleneck risk');
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppTheme.charcoalSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isCritical
+              ? AppTheme.alertRed.withValues(alpha: 0.65)
+              : (isElevated ? AppTheme.uiAmber.withValues(alpha: 0.5) : AppTheme.hairlineBorder),
+          width: isCritical ? 1.5 : 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isCritical
+                ? AppTheme.alertRed.withValues(alpha: 0.18)
+                : (isElevated ? AppTheme.uiAmber.withValues(alpha: 0.08) : Colors.black26),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top Title & Status Banner
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: tierColor.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: tierColor.withValues(alpha: 0.5)),
+                    ),
+                    child: Icon(Icons.tune_rounded, color: tierColor, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'DEMO CROWD DENSITY & RISK CONTROLLER',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.titaniumWhite,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Manually adjust attendee headcount to simulate real-time crowd surge escalation and risk triggers',
+                        style: GoogleFonts.inter(fontSize: 11, color: AppTheme.mutedSilver),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: tierColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: tierColor.withValues(alpha: 0.6), width: 1.0),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: tierColor),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      tierTitle,
+                      style: GoogleFonts.inter(
+                        color: tierColor,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 10,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+          const Divider(color: AppTheme.hairlineBorder, height: 1),
+          const SizedBox(height: 16),
+
+          // Center Controls Row: Steppers + Large Counter + Quick Presets
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth > 700;
+              return Flex(
+                direction: isWide ? Axis.horizontal : Axis.vertical,
+                crossAxisAlignment: isWide ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+                children: [
+                  // Stepper block
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildStepButton(
+                        label: '-5',
+                        tooltip: 'Decrease by 5',
+                        onTap: () => state.decrementManualPersonCount(5),
+                      ),
+                      const SizedBox(width: 6),
+                      _buildStepButton(
+                        label: '-1',
+                        icon: Icons.remove,
+                        tooltip: 'Decrease by 1',
+                        onTap: () => state.decrementManualPersonCount(1),
+                      ),
+                      const SizedBox(width: 10),
+                      // Big Counter Display
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.obsidianBlack,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: tierColor.withValues(alpha: 0.6), width: 1.2),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '$personCount',
+                              style: GoogleFonts.inter(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                                color: tierColor,
+                                height: 1.1,
+                              ),
+                            ),
+                            Text(
+                              personCount == 1 ? 'ATTENDEE' : 'ATTENDEES',
+                              style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.mutedSilver,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      _buildStepButton(
+                        label: '+1',
+                        icon: Icons.add,
+                        tooltip: 'Increase by 1',
+                        onTap: () => state.incrementManualPersonCount(1),
+                      ),
+                      const SizedBox(width: 6),
+                      _buildStepButton(
+                        label: '+5',
+                        tooltip: 'Increase by 5',
+                        onTap: () => state.incrementManualPersonCount(5),
+                      ),
+                    ],
+                  ),
+
+                  if (isWide) const SizedBox(width: 18) else const SizedBox(height: 12),
+
+                  // Quick Preset Pills
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _buildDemoPresetChip(
+                          label: '1 Solo (Safe)',
+                          isActive: personCount == 1 && state.isManualPersonOverride,
+                          activeColor: AppTheme.radarGreen,
+                          onTap: () => state.setManualPersonCount(1),
+                        ),
+                        _buildDemoPresetChip(
+                          label: '6 Normal (Safe)',
+                          isActive: personCount == 6 && state.isManualPersonOverride,
+                          activeColor: AppTheme.radarGreen,
+                          onTap: () => state.setManualPersonCount(6),
+                        ),
+                        _buildDemoPresetChip(
+                          label: '15 Influx (Warning)',
+                          isActive: personCount == 15 && state.isManualPersonOverride,
+                          activeColor: AppTheme.uiAmber,
+                          onTap: () => state.setManualPersonCount(15),
+                        ),
+                        _buildDemoPresetChip(
+                          label: '28 Surge (Alert)',
+                          isActive: personCount == 28 && state.isManualPersonOverride,
+                          activeColor: AppTheme.alertRed,
+                          onTap: () => state.setManualPersonCount(28),
+                        ),
+                        _buildDemoPresetChip(
+                          label: '55 Stampede Hazard',
+                          isActive: personCount == 55 && state.isManualPersonOverride,
+                          activeColor: AppTheme.alertRed,
+                          onTap: () => state.setManualPersonCount(55),
+                        ),
+                        if (state.isManualPersonOverride)
+                          InkWell(
+                            onTap: () => state.resetManualPersonCountToLive() ,
+                            borderRadius: BorderRadius.circular(6),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.obsidianBlack,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: const Color(0xFF60A5FA).withValues(alpha: 0.6)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.sync_rounded, color: Color(0xFF60A5FA), size: 14),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'Reset to Live Cam',
+                                    style: GoogleFonts.inter(
+                                      color: const Color(0xFF60A5FA),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          // Smooth Density Slider
+          Row(
+            children: [
+              Text(
+                '0',
+                style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+              Expanded(
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: tierColor,
+                    inactiveTrackColor: AppTheme.obsidianBlack,
+                    thumbColor: tierColor,
+                    overlayColor: tierColor.withValues(alpha: 0.2),
+                    trackHeight: 4,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                  ),
+                  child: Slider(
+                    value: personCount.toDouble().clamp(0.0, 100.0),
+                    min: 0,
+                    max: 100,
+                    divisions: 100,
+                    onChanged: (v) => state.setManualPersonCount(v.round()),
+                  ),
+                ),
+              ),
+              Text(
+                '100+',
+                style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+
+          // Footnote Explanation
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                tierSubtitle,
+                style: GoogleFonts.inter(fontSize: 10.5, color: tierColor, fontWeight: FontWeight.w600),
+              ),
+              Text(
+                state.isManualPersonOverride
+                    ? 'Mode: Demo Simulation Active'
+                    : 'Mode: Live Camera Feed Active',
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  color: state.isManualPersonOverride ? AppTheme.uiAmber : AppTheme.radarGreen,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepButton({
+    required String label,
+    IconData? icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: AppTheme.obsidianBlack,
+        borderRadius: BorderRadius.circular(6),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(6),
+          child: Container(
+            width: 36,
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppTheme.hairlineBorder),
+            ),
+            child: icon != null
+                ? Icon(icon, size: 16, color: AppTheme.titaniumWhite)
+                : Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.titaniumWhite,
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDemoPresetChip({
+    required String label,
+    required bool isActive,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? activeColor.withValues(alpha: 0.22) : AppTheme.obsidianBlack,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isActive ? activeColor : AppTheme.hairlineBorder,
+            width: isActive ? 1.4 : 1.0,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            color: isActive ? activeColor : AppTheme.titaniumWhite,
+            fontSize: 11,
+            fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
   void _deployQrt(BuildContext context, MockState state) {
     state.dispatchPatrol(
-      sector: 'Sector 01 (Command Post)',
-      threatType: 'Perimeter Sweep Patrol',
+      sector: 'Zone A (Main Entrance Concourse)',
+      threatType: 'Crowd Flow Monitoring Patrol',
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1517,7 +1913,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const Icon(Icons.check_circle_rounded, color: AppTheme.radarGreen, size: 18),
             const SizedBox(width: 8),
             Text(
-              'QRT PATROL ALPHA DEPLOYED TO SECTOR 01',
+              'SAFETY STEWARDS ALPHA DEPLOYED TO ZONE A',
               style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 12),
             ),
           ],

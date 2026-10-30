@@ -59,10 +59,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   child: _buildChartCard(
                     title: _timeRange.startsWith('Live')
                         ? 'Live Optical Target Waveform (CAM-01 Stream)'
-                        : 'Historical Threat Frequency ($_timeRange)',
+                        : 'Historical Incident & Surge Frequency ($_timeRange)',
                     subtitle: _timeRange.startsWith('Live')
                         ? 'Continuous real-time optical target detections scrolling every 650ms from CAM-01'
-                        : 'Aggregated target incursions across Sector 01 perimeter line',
+                        : 'Aggregated attendee influx and crowd surge events across Zone A',
                     badge: _buildWaveformBadges(state),
                     child: _buildTrendLineChart(state),
                   ),
@@ -80,7 +80,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   flex: 5,
                   child: _buildChartCard(
                     title: 'Live Optical Feed Sensor Performance & Throughput',
-                    subtitle: 'Real-time hardware throughput, latency, bitrate, and virtual fence integrity',
+                    subtitle: 'Real-time hardware throughput, latency, bitrate, and virtual flow gate integrity',
                     badge: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
@@ -155,10 +155,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontWeight: FontWeight.bold, fontSize: 12),
                   icon: const Icon(Icons.videocam, color: AppTheme.uiAmber, size: 16),
                   items: [
-                    const DropdownMenuItem(value: 'CAM-001', child: Text('CAM-001 (Laptop Cam • Live)')),
-                    const DropdownMenuItem(value: 'CAM-002', child: Text('CAM-002 (North Perimeter)')),
-                    const DropdownMenuItem(value: 'CAM-003', child: Text('CAM-003 (Watchtower Radar)')),
-                    const DropdownMenuItem(value: 'CAM-004', child: Text('CAM-004 (South Gate)')),
+                    const DropdownMenuItem(value: 'CAM-001', child: Text('CAM-001 (Main Concourse • Live)')),
+                    const DropdownMenuItem(value: 'CAM-002', child: Text('CAM-002 (Mobile Steward)')),
+                    const DropdownMenuItem(value: 'CAM-003', child: Text('CAM-003 (Arena Grandstand)')),
+                    const DropdownMenuItem(value: 'CAM-004', child: Text('CAM-004 (Food Plaza Gate)')),
                   ],
                   onChanged: (v) {
                     if (v != null) {
@@ -267,7 +267,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Real-time automated AI optical telemetry streams, camera sensor performance, and threat frequency',
+              'Real-time automated AI optical telemetry streams, camera sensor performance, and crowd influx frequency',
               style: GoogleFonts.inter(fontSize: 12, color: AppTheme.mutedSilver),
             ),
           ],
@@ -342,7 +342,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             _buildDivider(),
             _buildMetricItem(
-              'Active Breach Signals',
+              'Active Surge Alerts',
               '$activeAlertCount Detected',
               activeAlertCount > 0 ? AppTheme.alertRed : AppTheme.radarGreen,
               Icons.warning_amber_rounded,
@@ -527,7 +527,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           Text('AI FILTER:', style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 9, fontWeight: FontWeight.bold)),
                           ...['all', 'person', 'vehicle', 'fence', 'face'].map((m) {
                             final isActive = state.activeAiMode.toLowerCase() == m.toLowerCase();
-                            final label = m == 'person' ? 'HUMAN' : m == 'vehicle' ? 'VEHICLE' : m == 'fence' ? 'TRIPWIRE' : m == 'face' ? 'FACE' : 'ALL';
+                            final label = m == 'person' ? 'ATTENDEE' : m == 'vehicle' ? 'CARTS' : m == 'fence' ? 'FLOW GATE' : m == 'face' ? 'FACE' : 'ALL';
                             return InkWell(
                               onTap: () => state.setAiMode(m),
                               child: Container(
@@ -565,10 +565,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (state.cam1Counts['person']! > 0)
-          _buildBadgeTag('${state.cam1Counts['person']!} HUMANS', AppTheme.uiAmber),
+          _buildBadgeTag('${state.cam1Counts['person']!} ATTENDEES', AppTheme.uiAmber),
         if (state.cam1Counts['vehicle']! > 0) ...[
           const SizedBox(width: 6),
-          _buildBadgeTag('${state.cam1Counts['vehicle']!} VEHICLES', AppTheme.titaniumWhite),
+          _buildBadgeTag('${state.cam1Counts['vehicle']!} CARTS', AppTheme.titaniumWhite),
         ],
         if (state.cam1Counts['face']! > 0) ...[
           const SizedBox(width: 6),
@@ -576,7 +576,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         ],
         if (state.intrusionDetected) ...[
           const SizedBox(width: 6),
-          _buildBadgeTag('BREACH SPIKE', AppTheme.alertRed),
+          _buildBadgeTag('SURGE SPIKE', AppTheme.alertRed),
         ],
       ],
     );
@@ -772,7 +772,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final currentTargets = (state.cam1Counts['person']! + state.cam1Counts['vehicle']! + state.cam1Counts['face']! + state.cam1Counts['animal']!);
     final targetIndex = (currentTargets * 25.0).clamp(0.0, 100.0);
 
-    // 5. Perimeter Virtual Fence Integrity (100% nominal, 15% on incident breach)
+    // 5. Virtual Flow Gate Integrity (100% nominal, 15% on surge alert)
     final fenceIntegrity = state.intrusionDetected ? 15.0 : (state.isCameraOn ? 100.0 : 40.0);
 
     final barItems = [
@@ -780,7 +780,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       {'label': 'Bitrate (${(state.liveBitrateKbps / 1000).toStringAsFixed(1)}M)', 'val': bitrateValue, 'color': AppTheme.uiAmber},
       {'label': 'AI Speed (${state.liveLatencyMs}ms)', 'val': aiEfficiency, 'color': const Color(0xFF60A5FA)},
       {'label': 'Target Load', 'val': targetIndex > 0 ? targetIndex : 5.0, 'color': targetIndex > 0 ? AppTheme.uiAmber : AppTheme.disabledGrey},
-      {'label': 'Perimeter Fence', 'val': fenceIntegrity, 'color': state.intrusionDetected ? AppTheme.alertRed : AppTheme.radarGreen},
+      {'label': 'Flow Gate Flow', 'val': fenceIntegrity, 'color': state.intrusionDetected ? AppTheme.alertRed : AppTheme.radarGreen},
     ];
 
     return BarChart(
@@ -1017,7 +1017,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Chronological stream of verified targets, incursions, and AI neural detections from CAM-01',
+            'Chronological stream of verified attendees, crowd surges, and AI neural detections from CAM-01',
             style: GoogleFonts.inter(fontSize: 11, color: AppTheme.mutedSilver),
           ),
           const SizedBox(height: 16),

@@ -41,6 +41,7 @@ dependencies:
   window_manager: ^0.5.2
   google_fonts: ^8.2.1
   crypto: ^3.0.7
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

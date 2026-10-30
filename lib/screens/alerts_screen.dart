@@ -75,7 +75,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                     onChanged: (_) => setState(() {}),
                     style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
                     decoration: InputDecoration(
-                      hintText: 'Search alert ID, sector, camera...',
+                      hintText: 'Search alert ID, zone, camera...',
                       hintStyle: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
                       prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.uiAmber),
                       suffixIcon: query.isNotEmpty
@@ -101,7 +101,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   onPressed: () => _showDeployDialog(context, state),
                   icon: const Icon(Icons.send_rounded, size: 15, color: AppTheme.obsidianBlack),
                   label: Text(
-                    'DISPATCH QRT',
+                    'DISPATCH STEWARDS',
                     style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: AppTheme.obsidianBlack, letterSpacing: 0.5),
                   ),
                   style: ElevatedButton.styleFrom(
@@ -143,7 +143,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                           const SizedBox(height: 18),
                           Text(
                             state.alerts.isEmpty
-                                ? 'PERIMETER MANAGEMENT CLEAR • ZERO ACTIVE BREACHES'
+                                ? 'VENUE SAFETY CLEAR • ZERO ACTIVE ALERTS'
                                 : 'NO ALERTS MATCH FILTER "$_selectedFilter"',
                             style: GoogleFonts.inter(
                               color: AppTheme.titaniumWhite,
@@ -155,7 +155,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                           const SizedBox(height: 6),
                           Text(
                             state.alerts.isEmpty
-                                ? 'All sector nodes operating nominally. Camera feed actively scanned by YOLO model.'
+                                ? 'All venue zones operating nominally. Camera feeds actively monitored by EventGuardAI.'
                                 : 'Try selecting the "All" filter chip or clearing your search term.',
                             style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
                             textAlign: TextAlign.center,
@@ -254,7 +254,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
   }
 
   void _showDeployDialog(BuildContext context, MockState state) {
-    String selectedSector = 'Sector 01 (Command Post)';
+    String selectedSector = 'Zone A (Main Entrance Concourse)';
 
     showDialog(
       context: context,
@@ -270,7 +270,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
               const Icon(Icons.send_rounded, color: AppTheme.uiAmber, size: 22),
               const SizedBox(width: 10),
               Text(
-                'Dispatch Quick Reaction Team',
+                'Dispatch Event Safety Stewards',
                 style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
@@ -280,11 +280,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Authorize event patrol deployment to respond to active sector incursions.',
+                'Authorize safety steward deployment to respond to active venue zone crowd alerts.',
                 style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
               ),
               const SizedBox(height: 16),
-              Text('Target Sector', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text('Target Zone', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -300,9 +300,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
                     dropdownColor: AppTheme.charcoalElevated,
                     style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
                     items: const [
-                      DropdownMenuItem(value: 'Sector 01 (Command Post)', child: Text('Sector 01 (Command Post)')),
-                      DropdownMenuItem(value: 'Sector 02 (Eastern Ridge)', child: Text('Sector 02 (Eastern Ridge)')),
-                      DropdownMenuItem(value: 'Sector 03 (Northern Pass)', child: Text('Sector 03 (Northern Pass)')),
+                      DropdownMenuItem(value: 'Zone A (Main Entrance Concourse)', child: Text('Zone A (Main Entrance Concourse)')),
+                      DropdownMenuItem(value: 'Zone B (Central Arena & Grandstand)', child: Text('Zone B (Central Arena & Grandstand)')),
+                      DropdownMenuItem(value: 'Zone C (Food Plaza & Exit Corridor)', child: Text('Zone C (Food Plaza & Exit Corridor)')),
                     ],
                     onChanged: (val) {
                       if (val != null) {
@@ -323,7 +323,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
               onPressed: () {
                 state.dispatchPatrol(
                   sector: selectedSector,
-                  threatType: 'QRT Rapid Incursion Response',
+                  threatType: 'Safety Stewards Crowd Surge Response',
                 );
                 Navigator.pop(dialogCtx);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -332,7 +332,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                       children: [
                         const Icon(Icons.check_circle, color: AppTheme.radarGreen, size: 18),
                         const SizedBox(width: 8),
-                        Text('QRT Patrol dispatched to $selectedSector.', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                        Text('Safety Stewards dispatched to $selectedSector.', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
                       ],
                     ),
                     backgroundColor: AppTheme.charcoalElevated,
@@ -466,7 +466,7 @@ class _InteractiveAlertListItemState extends State<_InteractiveAlertListItem> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Sensor: ${alert.cameraId}   |   Sector: ${alert.location}',
+                      'Camera: ${alert.cameraId}   |   Zone: ${alert.location}',
                       style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
                     ),
                   ],

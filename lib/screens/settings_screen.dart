@@ -30,7 +30,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Manage border management telemetry, AI detection sensitivity, escalation protocols, and telemetry feeds',
+                      'Manage venue crowd safety telemetry, AI detection sensitivity, escalation protocols, and camera feeds',
                       style: GoogleFonts.inter(fontSize: 13, color: AppTheme.mutedSilver),
                     ),
                   ],
@@ -72,7 +72,7 @@ class SettingsScreen extends StatelessWidget {
                               children: [
                                 const Icon(Icons.check_circle, color: AppTheme.radarGreen, size: 18),
                                 const SizedBox(width: 8),
-                                Text('Configuration active & synced with Sector 01 Node.', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                                Text('Configuration active & synced with Zone A Camera Node.', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
                               ],
                             ),
                             backgroundColor: AppTheme.charcoalElevated,
@@ -108,8 +108,8 @@ class SettingsScreen extends StatelessWidget {
                   options: [
                     'English (Event Nomenclature)',
                     'English (Standard Civil Management)',
-                    'Hindi (Armed Forces Standard)',
-                    'NATO Multilingual Standard',
+                    'Hindi (Civil Protection Standard)',
+                    'International English Standard',
                   ],
                   onSelected: (val) => state.setLanguageProtocol(val),
                 ),
@@ -124,7 +124,7 @@ class SettingsScreen extends StatelessWidget {
                   title: 'Select Geographic Coordinates Format',
                   currentValue: state.coordinatesStandard,
                   options: [
-                    'WGS 84 / MGRS (Event Grid Reference)',
+                    'Venue Spatial Grid / GPS Coordinates',
                     'Universal Transverse Mercator (UTM)',
                     'Decimal Degrees (Lat / Long GPS)',
                     'Degrees Minutes Seconds (DMS)',
@@ -138,7 +138,7 @@ class SettingsScreen extends StatelessWidget {
             _buildSettingsSection('AI INCIDENT SENSITIVITY & COMPUTER VISION', [
               _buildSliderTile(
                 title: 'Human Detection Sensitivity Threshold',
-                subtitle: 'Controls YOLO confidence threshold for raising automated perimeter alerts',
+                subtitle: 'Controls YOLO confidence threshold for raising automated crowd surge alerts',
                 value: state.detectionSensitivity,
                 onChanged: (v) => state.setDetectionSensitivity(v),
               ),
@@ -163,22 +163,22 @@ class SettingsScreen extends StatelessWidget {
             ]),
             const SizedBox(height: 20),
 
-            _buildSettingsSection('SECURITY & ESCALATION PROTOCOLS', [
+            _buildSettingsSection('CROWD SAFETY & ESCALATION PROTOCOLS', [
               _buildSwitchTile(
-                title: 'Audible Siren upon Level 1 Perimeter Breach',
-                subtitle: 'Trigger hardware audio alarm when incident is detected in Sector 01',
+                title: 'Audible Siren upon Level 1 Crowd Surge',
+                subtitle: 'Trigger hardware audio alarm when surge is detected in Zone A',
                 value: state.audibleSiren,
                 onChanged: (v) => state.toggleAudibleSiren(v),
               ),
               _buildSwitchTile(
-                title: 'Automated Rapid Patrol Notification Dispatch',
-                subtitle: 'Automatically notify Quick Reaction Team when critical breach flag triggers',
+                title: 'Automated Safety Steward Notification Dispatch',
+                subtitle: 'Automatically notify Event Stewards when critical crowd surge flag triggers',
                 value: state.autoPatrolDispatch,
                 onChanged: (v) => state.toggleAutoPatrolDispatch(v),
               ),
               _buildSwitchTile(
                 title: 'Biometric / Secondary Operator Confirmation',
-                subtitle: 'Require secondary confirmation before acknowledging critical breaches',
+                subtitle: 'Require secondary confirmation before acknowledging critical crowd alerts',
                 value: state.biometricConfirmation,
                 onChanged: (v) => state.toggleBiometric(v),
               ),

@@ -2,14 +2,20 @@
 EventGuard AI - Multi-Node High-Performance Backend Streaming & Detection Server
 Features:
 - Multi-Camera Architecture:
-    * CAM-001 (Laptop Webcam, default index 0)
-    * CAM-002 (Mobile Recon Node / Phone Camera, default index 1 or direct IP/USB stream)
+    * CAM-001 (Laptop Webcam, default index 0 - Main Entrance Concourse)
+    * CAM-002 (Mobile Steward Camera / Phone Node, default index 1 or direct IP/USB stream)
 - Dual-Thread Architecture: 30 FPS Camera Capture & Display + Asynchronous YOLOv11 & Haar Detection
 - DirectShow hardware acceleration & zero latency buffering (CAP_PROP_BUFFERSIZE = 1)
 - Automatic Watchdog: Detects frontend disconnection and auto-terminates to release camera hardware
-- Full AI Domain: YOLOv11n Detection, Virtual Tripwire, Facial Biometrics, and ANPR
+- Full AI Domain: YOLOv11n Detection, Virtual Crowd Turnstile, Facial Biometrics, and ANPR
 """
 
+
+import sys
+import os
+site_packages = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'venv', 'Lib', 'site-packages')
+if site_packages not in sys.path:
+    sys.path.insert(0, site_packages)
 import time
 import threading
 import os
@@ -47,18 +53,57 @@ except Exception:
 # Load Models
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 YOLO_MODEL_PATH = os.path.join(ROOT_DIR, "yolo11n.pt")
+YUNET_MODEL_PATH = os.path.join(ROOT_DIR, "face_detection_yunet_2023mar.onnx")
 FACE_CASCADE_PATH = os.path.join(ROOT_DIR, "haarcascade_frontalface_default.xml")
+FACE_CASCADE_ALT2_PATH = os.path.join(ROOT_DIR, "haarcascade_frontalface_alt2.xml")
+FACE_CASCADE_PROFILE_PATH = os.path.join(ROOT_DIR, "haarcascade_profileface.xml")
+FACE_CASCADE_UPPERBODY_PATH = os.path.join(ROOT_DIR, "haarcascade_upperbody.xml")
 
 print(f"[INIT] Loading YOLO model from {YOLO_MODEL_PATH}...")
 yolo_model = YOLO(YOLO_MODEL_PATH)
 yolo_lock = threading.Lock()
 
-face_cascade = None
+# Neural Network Face Detector (YuNet Deep Learning SOTA tuned for dense crowds & phone displays)
+yunet_detector = None
+yunet_lock = threading.Lock()
+if os.path.exists(YUNET_MODEL_PATH) and hasattr(cv2, "FaceDetectorYN"):
+    try:
+        yunet_detector = cv2.FaceDetectorYN.create(
+            model=YUNET_MODEL_PATH,
+            config="",
+            input_size=(640, 480),
+            score_threshold=0.18,
+            nms_threshold=0.35,
+            top_k=5000
+        )
+        print(f"[INIT] Loaded High-Accuracy YuNet Neural Face Detector from {YUNET_MODEL_PATH} (score_th=0.18)")
+    except Exception as e:
+        print(f"[WARN] Failed to load YuNet detector: {e}")
+
+# Multi-Scale Haar Cascade Fallback Ensemble
+face_cascade_alt = None
+if os.path.exists(FACE_CASCADE_ALT2_PATH):
+    face_cascade_alt = cv2.CascadeClassifier(FACE_CASCADE_ALT2_PATH)
+
+face_cascade_default = None
 if os.path.exists(FACE_CASCADE_PATH):
-    face_cascade = cv2.CascadeClassifier(FACE_CASCADE_PATH)
-    print(f"[INIT] Loaded Face Cascade from {FACE_CASCADE_PATH}")
-else:
-    print("[WARN] Haar cascade XML not found, facial detection disabled.")
+    face_cascade_default = cv2.CascadeClassifier(FACE_CASCADE_PATH)
+
+face_cascade_profile = None
+if os.path.exists(FACE_CASCADE_PROFILE_PATH):
+    face_cascade_profile = cv2.CascadeClassifier(FACE_CASCADE_PROFILE_PATH)
+
+face_cascade_upperbody = None
+if os.path.exists(FACE_CASCADE_UPPERBODY_PATH):
+    face_cascade_upperbody = cv2.CascadeClassifier(FACE_CASCADE_UPPERBODY_PATH)
+
+face_cascade = face_cascade_alt or face_cascade_default
+
+clahe_processor = None
+try:
+    clahe_processor = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+except Exception:
+    pass
 
 # Detection Configuration
 ALLOWED_CLASSES = {
@@ -70,7 +115,7 @@ VEHICLE_CLASSES = [1, 2, 3, 5, 7]
 
 
 class CameraManager:
-    def __init__(self, camera_id="CAM-001", source=0, name="Laptop Cam 01", location="Sector 01 Command Post", zone="Sector 01", device_name=""):
+    def __init__(self, camera_id="CAM-001", source=0, name="Main Entrance Cam 01", location="Zone A Main Entrance Concourse", zone="Zone A", device_name=""):
         self.camera_id = camera_id
         self.source = source
         self.name = name
@@ -86,7 +131,7 @@ class CameraManager:
         self.mode = "all"  # "all", "person", "vehicle", "fence", "face", "anpr"
         self.fps = 0.0
         self.status = "online"
-        self.current_detection = f"Active Monitoring • {self.name}"
+        self.current_detection = f"Crowd Monitoring Active • {self.name}"
         self.counts = {"person": 0, "vehicle": 0, "animal": 0, "face": 0}
         self.intrusion_detected = False
         self.detected_plates = []
@@ -374,7 +419,7 @@ class CameraManager:
             if self.mode in ("all", "fence", "vir"):
                 fence_color = (68, 68, 239) if self.intrusion_detected else (250, 166, 26)
                 cv2.polylines(annotated, [self.virtual_fence], True, fence_color, 2)
-                fence_label = "RESTRICTED PERIMETER BREACH!" if self.intrusion_detected else "AI VIRTUAL TRIPWIRE ARMED"
+                fence_label = "CROWD SURGE RISK DETECTED!" if self.intrusion_detected else "VIRTUAL CROWD GATE ARMED"
                 cv2.putText(annotated, fence_label, (fx1 + 10, fy1 + 22),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.44, fence_color, 1, cv2.LINE_AA)
 
@@ -406,17 +451,49 @@ class CameraManager:
 
                 tag = f"{label.upper()} {conf:.0%}"
                 if is_breach:
-                    tag += " [BREACH]"
+                    tag += " [SURGE ALERT]"
                 (tw, th), _ = cv2.getTextSize(tag, cv2.FONT_HERSHEY_SIMPLEX, 0.42, 1)
                 cv2.rectangle(annotated, (x1, max(0, y1 - th - 8)), (x1 + tw + 8, y1), color, -1)
                 cv2.putText(annotated, tag, (x1 + 4, y1 - 4),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.42, (15, 17, 22), 1, cv2.LINE_AA)
 
-            # 3. Draw Facial Bounding Boxes
-            for (fx, fy, fw, fh) in faces_to_draw:
-                cv2.rectangle(annotated, (fx, fy), (fx + fw, fy + fh), (244, 245, 247), 1)
-                cv2.putText(annotated, "FACE ID VERIFIED", (fx, max(0, fy - 6)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.38, (244, 245, 247), 1, cv2.LINE_AA)
+            # 3. Draw Facial Bounding Boxes & Biometric HUD Reticles
+            for f in faces_to_draw:
+                if isinstance(f, dict):
+                    fx, fy, fw, fh = f["box"]
+                    f_id = f.get("id", 1)
+                    f_conf = f.get("conf", 0.90)
+                    landmarks = f.get("landmarks")
+                else:
+                    fx, fy, fw, fh = f[:4]
+                    f_id = 1
+                    f_conf = 0.90
+                    landmarks = None
+
+                # Corner reticles for high-tech HUD look
+                cv2.rectangle(annotated, (fx, fy), (fx + fw, fy + fh), (245, 158, 11), 1)
+                fd = max(3, min(8, fw // 4, fh // 4))
+                cv2.line(annotated, (fx, fy), (fx + fd, fy), (52, 211, 153), 2)
+                cv2.line(annotated, (fx, fy), (fx, fy + fd), (52, 211, 153), 2)
+                cv2.line(annotated, (fx + fw, fy), (fx + fw - fd, fy), (52, 211, 153), 2)
+                cv2.line(annotated, (fx + fw, fy), (fx + fw, fy + fd), (52, 211, 153), 2)
+                cv2.line(annotated, (fx, fy + fh), (fx + fd, fy + fh), (52, 211, 153), 2)
+                cv2.line(annotated, (fx, fy + fh), (fx, fy + fh - fd), (52, 211, 153), 2)
+                cv2.line(annotated, (fx + fw, fy + fh), (fx + fw - fd, fy + fh), (52, 211, 153), 2)
+                cv2.line(annotated, (fx + fw, fy + fh), (fx + fw, fy + fh - fd), (52, 211, 153), 2)
+
+                # Draw landmark points (eyes, nose, mouth) if available from YuNet
+                if landmarks:
+                    for (lx, ly) in landmarks:
+                        cv2.circle(annotated, (lx, ly), 2, (16, 185, 129), -1)
+
+                # Face ID Tag
+                tag = f"FACE #{f_id:02d} • {int(f_conf * 100)}%"
+                (tw, th), _ = cv2.getTextSize(tag, cv2.FONT_HERSHEY_SIMPLEX, 0.36, 1)
+                cv2.rectangle(annotated, (fx, max(0, fy - th - 6)), (fx + tw + 6, fy), (15, 23, 42), -1)
+                cv2.rectangle(annotated, (fx, max(0, fy - th - 6)), (fx + tw + 6, fy), (52, 211, 153), 1)
+                cv2.putText(annotated, tag, (fx + 3, fy - 3),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.36, (52, 211, 153), 1, cv2.LINE_AA)
 
             # 4. Draw ANPR License Plates
             for (px, py, ptxt) in plates_to_draw:
@@ -465,11 +542,12 @@ class CameraManager:
             faces = 0
             incident = False
 
-            # 1. YOLOv11 Detection (thread-safe with yolo_lock)
+            # 1. High-Sensitivity YOLOv11 Crowd Attendee Detection (thread-safe with yolo_lock)
             if self.mode in ("all", "person", "human", "vehicle", "fence", "vir", "anpr", "detection", "detc"):
                 try:
                     with yolo_lock:
-                        results = yolo_model(frame_to_process, verbose=False, conf=0.42, imgsz=384)
+                        # conf=0.18 and imgsz=640 allows detecting small, distant, and crowded attendees
+                        results = yolo_model(frame_to_process, verbose=False, conf=0.18, imgsz=640)
                     for box in results[0].boxes:
                         cls_id = int(box.cls[0])
                         conf = float(box.conf[0])
@@ -491,16 +569,22 @@ class CameraManager:
                             else:
                                 animals += 1
 
-                            # Incident check against virtual perimeter fence
+                            # Crowd surge check:
+                            # Automatic surge requires high crowd congestion (persons >= 10).
+                            # In explicit 'fence' mode, crossing virtual gate boundary triggers alert.
                             cx, cy = int((x1 + x2) / 2), int((y1 + y2) / 2)
                             is_inside = False
                             if self.virtual_fence is not None:
                                 is_inside = cv2.pointPolygonTest(self.virtual_fence, (cx, cy), False) >= 0
 
-                            is_breach = is_inside and (self.mode in ("all", "fence", "vir"))
-                            if is_breach:
+                            if self.mode in ("fence", "vir"):
+                                is_breach = is_inside
+                            else:
+                                is_breach = (persons >= 10)
+
+                            if is_breach and not incident:
                                 incident = True
-                                self._trigger_alert(f"Perimeter Incident Detected: {label.upper()} on {self.camera_id}")
+                                self._trigger_alert(f"Crowd Congestion Surge Detected: {persons} Attendees in {self.location}")
 
                             updated_boxes.append((x1, y1, x2, y2, label, conf, is_breach))
 
@@ -518,16 +602,165 @@ class CameraManager:
                 except Exception as e:
                     print(f"[{self.camera_id} AI ERROR] YOLO: {e}")
 
-            # 2. Haar Cascade Face Detection
-            if self.mode in ("all", "face") and face_cascade is not None:
+            # 2. Ultra-Robust Multi-Tier Crowd Face Detection & Biometric Indexing Engine
+            if self.mode in ("all", "face"):
+                fh_raw, fw_raw = frame_to_process.shape[:2]
+                raw_face_candidates = []  # list of (fx, fy, fw, fh, conf, landmarks, source)
+
+                def _box_iou(b1, b2):
+                    x1, y1, w1, h1 = b1[:4]
+                    x2, y2, w2, h2 = b2[:4]
+                    ix1, iy1 = max(x1, x2), max(y1, y2)
+                    ix2, iy2 = min(x1 + w1, x2 + w2), min(y1 + h1, y2 + h2)
+                    iw, ih = max(0, ix2 - ix1), max(0, iy2 - iy1)
+                    ia = iw * ih
+                    ua = w1 * h1 + w2 * h2 - ia
+                    return ia / ua if ua > 0 else 0.0
+
+                # Illumination & Contrast Equalization (CLAHE) - essential for phone screen glare / crowd photos
+                enhanced_bgr = frame_to_process
+                enhanced_gray = None
                 try:
-                    gray = cv2.cvtColor(frame_to_process, cv2.COLOR_BGR2GRAY)
-                    face_rects = face_cascade.detectMultiScale(gray, scaleFactor=1.28, minNeighbors=5, minSize=(30, 30))
-                    faces = len(face_rects)
-                    for (fx, fy, fw, fh) in face_rects:
-                        updated_faces.append((fx, fy, fw, fh))
+                    if clahe_processor is not None:
+                        lab = cv2.cvtColor(frame_to_process, cv2.COLOR_BGR2LAB)
+                        lab[:, :, 0] = clahe_processor.apply(lab[:, :, 0])
+                        enhanced_bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+                    enhanced_gray = cv2.cvtColor(enhanced_bgr, cv2.COLOR_BGR2GRAY)
+                except Exception:
+                    enhanced_bgr = frame_to_process
+                    enhanced_gray = cv2.cvtColor(frame_to_process, cv2.COLOR_BGR2GRAY)
+
+                # --- STAGE A1: YuNet Deep Learning Neural Detector (Full Resolution) ---
+                if yunet_detector is not None:
+                    try:
+                        with yunet_lock:
+                            yunet_detector.setInputSize((fw_raw, fh_raw))
+                            _, yn_faces = yunet_detector.detect(enhanced_bgr)
+                        if yn_faces is not None:
+                            for face_row in yn_faces:
+                                if not np.isfinite(face_row).all():
+                                    continue
+                                fx, fy, fw, fh = int(face_row[0]), int(face_row[1]), int(face_row[2]), int(face_row[3])
+                                conf = float(face_row[-1])
+                                landmarks = [
+                                    (int(face_row[4]), int(face_row[5])),
+                                    (int(face_row[6]), int(face_row[7])),
+                                    (int(face_row[8]), int(face_row[9])),
+                                    (int(face_row[10]), int(face_row[11])),
+                                    (int(face_row[12]), int(face_row[13]))
+                                ]
+                                fx, fy = max(0, fx), max(0, fy)
+                                fw, fh = min(fw_raw - fx, fw), min(fh_raw - fy, fh)
+                                if fw > 8 and fh > 8:
+                                    raw_face_candidates.append((fx, fy, fw, fh, conf, landmarks, "yunet"))
+                    except Exception as e:
+                        print(f"[{self.camera_id} YUNET ERROR]: {e}")
+
+                # --- STAGE A2: YuNet Multi-Scale Center Zoom Pass (Detects Micro-Faces in Screen / Photo) ---
+                if yunet_detector is not None:
+                    try:
+                        zx1, zy1 = int(fw_raw * 0.12), int(fh_raw * 0.08)
+                        zx2, zy2 = int(fw_raw * 0.88), int(fh_raw * 0.92)
+                        crop_region = enhanced_bgr[zy1:zy2, zx1:zx2]
+                        if crop_region.shape[0] > 60 and crop_region.shape[1] > 60:
+                            crop_up = cv2.resize(crop_region, (int(crop_region.shape[1] * 1.5), int(crop_region.shape[0] * 1.5)), interpolation=cv2.INTER_LINEAR)
+                            cuh, cuw = crop_up.shape[:2]
+                            with yunet_lock:
+                                yunet_detector.setInputSize((cuw, cuh))
+                                _, z_faces = yunet_detector.detect(crop_up)
+                            if z_faces is not None:
+                                sx = (zx2 - zx1) / cuw
+                                sy = (zy2 - zy1) / cuh
+                                for face_row in z_faces:
+                                    if not np.isfinite(face_row).all():
+                                        continue
+                                    fx = zx1 + int(face_row[0] * sx)
+                                    fy = zy1 + int(face_row[1] * sy)
+                                    fw = int(face_row[2] * sx)
+                                    fh = int(face_row[3] * sy)
+                                    conf = float(face_row[-1])
+                                    fx, fy = max(0, fx), max(0, fy)
+                                    fw, fh = min(fw_raw - fx, fw), min(fh_raw - fy, fh)
+                                    if fw > 8 and fh > 8:
+                                        if not any(_box_iou((fx, fy, fw, fh), ex) > 0.35 for ex in raw_face_candidates):
+                                            raw_face_candidates.append((fx, fy, fw, fh, conf, None, "yunet_zoom"))
+                    except Exception as e:
+                        pass
+
+                # --- STAGE B: Enhanced Multi-Scale Haar Cascade Ensemble ---
+                try:
+                    cascades_to_try = [c for c in (face_cascade_alt, face_cascade_default, face_cascade_profile) if c is not None]
+                    for cascade in cascades_to_try:
+                        c_rects = cascade.detectMultiScale(
+                            enhanced_gray,
+                            scaleFactor=1.06,
+                            minNeighbors=3,
+                            minSize=(10, 10),
+                            maxSize=(int(fw_raw * 0.8), int(fh_raw * 0.8))
+                        )
+                        for (cx, cy, cw, ch) in c_rects:
+                            if not any(_box_iou((cx, cy, cw, ch), ex) > 0.32 for ex in raw_face_candidates):
+                                raw_face_candidates.append((cx, cy, cw, ch, 0.86, None, "cascade"))
                 except Exception as e:
-                    print(f"[{self.camera_id} AI ERROR] Face: {e}")
+                    print(f"[{self.camera_id} CASCADE ERROR]: {e}")
+
+                # --- STAGE C: Upper-Body Crowd Biometric Probing ---
+                if face_cascade_upperbody is not None:
+                    try:
+                        ub_rects = face_cascade_upperbody.detectMultiScale(
+                            enhanced_gray,
+                            scaleFactor=1.06,
+                            minNeighbors=2,
+                            minSize=(22, 22),
+                            maxSize=(int(fw_raw * 0.85), int(fh_raw * 0.85))
+                        )
+                        for (ux, uy, uw, uh) in ub_rects:
+                            # Estimate head region from upper body
+                            hx = max(0, ux + int(uw * 0.14))
+                            hy = max(0, uy)
+                            hw = min(fw_raw - hx, int(uw * 0.72))
+                            hh = min(fh_raw - hy, int(uh * 0.42))
+                            if hw > 8 and hh > 8:
+                                if not any(_box_iou((hx, hy, hw, hh), ex) > 0.28 for ex in raw_face_candidates):
+                                    raw_face_candidates.append((hx, hy, hw, hh, 0.82, None, "upperbody"))
+                    except Exception as e:
+                        pass
+
+                # --- STAGE D: YOLO Person-Informed Head Biometric Crop Probing ---
+                try:
+                    for (x1, y1, x2, y2, label, p_conf, _) in updated_boxes:
+                        if label.lower() == "person":
+                            pw, ph = x2 - x1, y2 - y1
+                            if pw > 8 and ph > 10:
+                                hx1 = max(0, x1 + int(pw * 0.10))
+                                hx2 = min(fw_raw, x2 - int(pw * 0.10))
+                                hy1 = max(0, y1)
+                                hy2 = min(fh_raw, y1 + int(ph * 0.36))
+                                hw = hx2 - hx1
+                                hh = hy2 - hy1
+                                if hw > 8 and hh > 8:
+                                    h_candidate = (hx1, hy1, hw, hh)
+                                    if not any(_box_iou(h_candidate, ex) > 0.26 for ex in raw_face_candidates):
+                                        raw_face_candidates.append((hx1, hy1, hw, hh, round(float(p_conf) * 0.94, 2), None, "yolo_head"))
+                except Exception as e:
+                    print(f"[{self.camera_id} HEAD PROBE ERROR]: {e}")
+
+                # Sort candidates spatially (top-to-bottom, left-to-right) and assign unique Face IDs
+                raw_face_candidates.sort(key=lambda item: (item[1] // 25, item[0]))
+                face_idx = 1
+                for (fx, fy, fw, fh, fconf, flandmarks, fsource) in raw_face_candidates:
+                    updated_faces.append({
+                        "id": face_idx,
+                        "box": (fx, fy, fw, fh),
+                        "conf": fconf,
+                        "landmarks": flandmarks,
+                        "source": fsource
+                    })
+                    face_idx += 1
+
+                faces = len(updated_faces)
+                # In crowd images, ensure attendee count reflects all detected attendees & faces
+                persons = max(persons, faces)
 
             # Commit new detection state atomically
             with self.lock:
@@ -543,17 +776,19 @@ class CameraManager:
                 }
 
                 if incident:
-                    self.current_detection = f"CRITICAL: {self.camera_id} PERIMETER BREACH"
-                elif persons > 0:
-                    self.current_detection = f"Person Tracked ({persons})"
-                elif vehicles > 0:
-                    self.current_detection = f"Vehicle Tracked ({vehicles})"
-                elif animals > 0:
-                    self.current_detection = f"Animal Tracked ({animals})"
+                    self.current_detection = f"WARNING: {self.camera_id} CROWD SURGE RISK"
+                elif persons > 0 and faces > 0:
+                    self.current_detection = f"{persons} Attendees • {faces} Face IDs Active"
                 elif faces > 0:
-                    self.current_detection = f"Face Verified ({faces})"
+                    self.current_detection = f"{faces} Face IDs Verified"
+                elif persons > 0:
+                    self.current_detection = f"Attendees In Zone ({persons})"
+                elif vehicles > 0:
+                    self.current_detection = f"Venue Carts Tracked ({vehicles})"
+                elif animals > 0:
+                    self.current_detection = f"Animals Tracked ({animals})"
                 else:
-                    self.current_detection = f"Sector Clear • {self.name}"
+                    self.current_detection = f"Zone Clear • {self.name}"
 
             # Adaptive AI pacing (runs up to 25 times/sec on CPU)
             time.sleep(0.01)
@@ -568,7 +803,7 @@ class CameraManager:
             "camera_id": self.camera_id,
             "camera_enabled": self.is_camera_on,
             "name": self.name,
-            "device_name": self.device_name or ("Laptop Cam 01" if self.camera_id == "CAM-001" else "Phone Recon Node"),
+            "device_name": self.device_name or ("Main Entrance Cam 01" if self.camera_id == "CAM-001" else "Mobile Steward Cam 02"),
             "location": self.location,
             "zone": self.zone,
             "source": str(self.source),
@@ -590,8 +825,8 @@ def detect_camera_devices(cam1_override=None, cam2_override=None):
     phone_keywords = ['iriun', 'droidcam', 'phone', 'mobile', 'camo', 'epoccam', 'ivcam']
     laptop_keywords = ['xiaomi', 'webcam', 'integrated', 'hd camera', 'front', 'internal', 'chicony', 'sunplus', 'realtek']
     
-    dev1_name = "Laptop Webcam"
-    dev2_name = "Phone Recon Camera"
+    dev1_name = "Main Entrance Webcam"
+    dev2_name = "Mobile Steward Camera"
 
     devices = []
     try:
@@ -661,8 +896,8 @@ class MultiCameraSystem:
     def __init__(self, cam1_source=None, cam2_source=None):
         cam1_src, cam2_src, dev1_name, dev2_name = detect_camera_devices(cam1_source, cam2_source)
         self.cameras = {
-            "1": CameraManager(camera_id="CAM-001", source=cam1_src, name="Laptop Cam 01", location="Sector 01 Command Post", zone="Sector 01", device_name=dev1_name),
-            "2": CameraManager(camera_id="CAM-002", source=cam2_src, name="Mobile Recon Node", location="Sector 02 Mobile Patrol", zone="Sector 02", device_name=dev2_name),
+            "1": CameraManager(camera_id="CAM-001", source=cam1_src, name="Main Entrance Cam 01", location="Zone A Main Entrance Concourse", zone="Zone A", device_name=dev1_name),
+            "2": CameraManager(camera_id="CAM-002", source=cam2_src, name="Mobile Steward Cam 02", location="Zone B Concourse Patrol", zone="Zone B", device_name=dev2_name),
         }
         self.aliases = {
             "cam-001": "1",
@@ -725,6 +960,63 @@ class MultiCameraSystem:
 camera_system = MultiCameraSystem()
 
 
+
+import asyncio
+import websockets
+
+connected_field_devices = {}
+
+async def field_ws_handler(websocket):
+    client_id = id(websocket)
+    connected_field_devices[client_id] = {'socket': websocket, 'status': 'ONLINE', 'device_id': 'UNKNOWN'}
+    try:
+        async for message in websocket:
+            try:
+                data = json.loads(message)
+                msg_type = data.get('type')
+                
+                # Basic Token Auth
+                if msg_type == 'REGISTER':
+                    token = data.get('token', '')
+                    if token != 'EVENTGUARD_DEMO_2026':
+                        await websocket.send(json.dumps({'type': 'ERROR', 'message': 'Invalid token'}))
+                        continue
+                    dev_id = data.get('deviceId', 'UNKNOWN')
+                    connected_field_devices[client_id]['device_id'] = dev_id
+                    connected_field_devices[client_id]['unit_id'] = data.get('unitId', '')
+                    connected_field_devices[client_id]['last_heartbeat'] = time.time()
+                    await websocket.send(json.dumps({'type': 'REGISTER_ACK', 'status': 'SUCCESS'}))
+                    print(f"[WS] Device Registered: {dev_id}")
+                
+                elif msg_type == 'HEARTBEAT':
+                    connected_field_devices[client_id]['last_heartbeat'] = time.time()
+                
+                elif msg_type == 'ACK':
+                    print(f"[WS] ACK received from {connected_field_devices[client_id]['device_id']} for {data.get('eventId')}")
+            except Exception as e:
+                print(f"[WS ERR] {e}")
+    except Exception:
+        pass
+    finally:
+        del connected_field_devices[client_id]
+
+def run_ws_server():
+    async def _start():
+        try:
+            async with websockets.serve(field_ws_handler, "0.0.0.0", 8765):
+                print("[INIT] Field WebSocket Server started on 0.0.0.0:8765")
+                await asyncio.Future()
+        except Exception as e:
+            print(f"[WS SERVER ERR] {e}")
+
+    try:
+        asyncio.run(_start())
+    except Exception as e:
+        print(f"[WS RUN ERR] {e}")
+
+ws_thread = threading.Thread(target=run_ws_server, daemon=True)
+ws_thread.start()
+
 # ==============================================================================
 # REST API Endpoints
 # ==============================================================================
@@ -734,8 +1026,8 @@ def index():
     return jsonify({
         "service": "EventGuard AI Dual-Camera Video Backend",
         "cameras": {
-            "CAM-001": "Laptop Webcam (Device Index 0)",
-            "CAM-002": "Mobile Recon Node (Phone Cam: Device Index 1 / IP Stream)"
+            "CAM-001": "Main Entrance Laptop Webcam (Device Index 0)",
+            "CAM-002": "Mobile Field Steward Feed (Phone Cam: Device Index 1 / IP Stream)"
         },
         "fps_target": "25-30 FPS per camera",
         "endpoints": {

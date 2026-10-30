@@ -132,6 +132,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
   Widget _buildCamFeed() {
     final bool isCam2 = widget.camera.id == 'CAM-002' || widget.camera.id == 'SLOT-02';
     final bool hasThreat = widget.camera.currentDetection.contains('CRITICAL') ||
+        widget.camera.currentDetection.contains('SURGE') ||
         widget.camera.currentDetection.contains('BREACH') ||
         widget.camera.currentDetection.contains('Incident');
 
@@ -198,7 +199,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      hasThreat ? 'BREACH ALERT' : (isCam2 ? 'LIVE • PHONE RECON' : 'LIVE • LAP CAM 01'),
+                      hasThreat ? 'CROWD ALERT' : (isCam2 ? 'LIVE • MOBILE STEWARD' : 'LIVE • MAIN ENTRANCE 01'),
                       style: GoogleFonts.inter(
                         fontSize: widget.isModal ? 11 : 9,
                         fontWeight: FontWeight.w800,
@@ -264,7 +265,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
               ),
               const SizedBox(height: 10),
               Text(
-                isCam2 ? 'CAM 02 • MOBILE RECON (PHONE)' : 'CAM 01 • LAPTOP WEBCAM',
+                isCam2 ? 'CAM 02 • MOBILE STEWARD (PHONE)' : 'CAM 01 • MAIN ENTRANCE WEBCAM',
                 style: GoogleFonts.inter(
                   color: AppTheme.titaniumWhite,
                   fontSize: 12,
@@ -274,7 +275,7 @@ class _LiveCameraFeedState extends State<LiveCameraFeed> {
               ),
               const SizedBox(height: 4),
               Text(
-                isCam2 ? 'Connect phone via USB (Iriun / DroidCam) or Tethering' : 'Connecting to Python AI Backend (port 5000)...',
+                isCam2 ? 'Connect mobile steward phone via USB (Iriun / DroidCam) or Tethering' : 'Connecting to Python AI Backend (port 5000)...',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   color: AppTheme.mutedSilver,

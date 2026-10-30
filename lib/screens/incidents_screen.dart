@@ -9,10 +9,10 @@ class IncidentsScreen extends StatelessWidget {
   const IncidentsScreen({Key? key}) : super(key: key);
 
   void _showLogIncidentDialog(BuildContext context) {
-    final threatController = TextEditingController(text: 'Perimeter Incident Breach');
-    final sensorController = TextEditingController(text: 'CAM-001 (Laptop Webcam)');
-    final sectorController = TextEditingController(text: 'Sector 01 Command Post');
-    final notesController = TextEditingController(text: 'Target observed attempting breach along northern security perimeter fence.');
+    final threatController = TextEditingController(text: 'Crowd Surge & Bottleneck Alert');
+    final sensorController = TextEditingController(text: 'CAM-001 (Main Entrance WebCam)');
+    final sectorController = TextEditingController(text: 'Zone A Concourse');
+    final notesController = TextEditingController(text: 'High attendee influx detected along main entrance concourse. Stewards deployed.');
     IncidentSeverity selectedSeverity = IncidentSeverity.critical;
 
     showDialog(
@@ -31,7 +31,7 @@ class IncidentsScreen extends StatelessWidget {
                   const Icon(Icons.shield_outlined, color: AppTheme.uiAmber, size: 22),
                   const SizedBox(width: 10),
                   Text(
-                    'Log Management Security Incident',
+                    'Log Event Safety Incident',
                     style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -43,16 +43,16 @@ class IncidentsScreen extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Threat Classification', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text('Risk Classification', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: threatController,
                         style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
-                        decoration: const InputDecoration(hintText: 'e.g. Perimeter Incursion, UAV Sighting'),
+                        decoration: const InputDecoration(hintText: 'e.g. Crowd Surge, Egress Blockage'),
                       ),
                       const SizedBox(height: 14),
 
-                      Text('Monitoring Sensor / Channel', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text('Monitoring Camera / Channel', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: sensorController,
@@ -61,16 +61,16 @@ class IncidentsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 14),
 
-                      Text('Deployment Sector Location', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text('Venue Zone Location', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: sectorController,
                         style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
-                        decoration: const InputDecoration(hintText: 'e.g. Sector 01'),
+                        decoration: const InputDecoration(hintText: 'e.g. Zone A (Main Entrance)'),
                       ),
                       const SizedBox(height: 14),
 
-                      Text('Threat Escalation Severity', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text('Risk Escalation Severity', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -185,11 +185,11 @@ class IncidentsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildReportField('Incident Identifier', incident.id),
-                _buildReportField('Threat Classification', incident.threatType),
-                _buildReportField('Deployment Sector', incident.location),
-                _buildReportField('Sensor / Ingestion Node', incident.cameraId),
+                _buildReportField('Risk Classification', incident.threatType),
+                _buildReportField('Venue Zone', incident.location),
+                _buildReportField('Camera / Feed', incident.cameraId),
                 _buildReportField('Detection Timestamp', incident.detectedAt.toIso8601String().replaceAll('T', ' ').substring(0, 19)),
-                _buildReportField('Assigned Management Officer', incident.assignedTo),
+                _buildReportField('Assigned Safety Steward', incident.assignedTo),
                 _buildReportField('AI Ingestion Confidence', '${incident.confidence}% Verified'),
                 _buildReportField('Current Status', incident.status.name.toUpperCase()),
                 const SizedBox(height: 12),
@@ -206,7 +206,7 @@ class IncidentsScreen extends StatelessWidget {
                     border: Border.all(color: AppTheme.hairlineBorder),
                   ),
                   child: Text(
-                    incident.notes.isNotEmpty ? incident.notes : 'Standard optical detection triggered automated perimeter monitoring breach alarm.',
+                    incident.notes.isNotEmpty ? incident.notes : 'Real-time AI camera detection triggered automated crowd safety monitoring alert.',
                     style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12),
                   ),
                 ),
@@ -273,7 +273,7 @@ class IncidentsScreen extends StatelessWidget {
                   children: [
                     Text('Incident Log & Dispatch Register', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.titaniumWhite)),
                     const SizedBox(height: 4),
-                    Text('Official border management incident record and active patrol dispatches', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.mutedSilver)),
+                    Text('Official event crowd safety incident record and active steward dispatches', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.mutedSilver)),
                   ],
                 ),
                 const Spacer(),
@@ -318,12 +318,12 @@ class IncidentsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'NO LOGGED MANAGEMENT INCIDENTS',
+                            'NO LOGGED EVENT SAFETY INCIDENTS',
                             style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontWeight: FontWeight.w800, fontSize: 14),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Perimeter sectors are fully secure. New incidents will automatically populate when CAM-01 detects breaches or upon manual operator entry.',
+                            'Venue zones are operating nominally. New incidents will automatically populate when camera feeds detect crowd surges or upon manual operator entry.',
                             style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
                             textAlign: TextAlign.center,
                           ),
@@ -365,9 +365,9 @@ class IncidentsScreen extends StatelessWidget {
                             dataRowMaxHeight: 56,
                             columns: const [
                               DataColumn(label: Text('Incident ID')),
-                              DataColumn(label: Text('Threat Classification')),
-                              DataColumn(label: Text('Sensor / Node')),
-                              DataColumn(label: Text('Sector Location')),
+                              DataColumn(label: Text('Risk Classification')),
+                              DataColumn(label: Text('Camera / Feed')),
+                              DataColumn(label: Text('Venue Zone')),
                               DataColumn(label: Text('Severity')),
                               DataColumn(label: Text('Status')),
                               DataColumn(label: Text('Operations')),

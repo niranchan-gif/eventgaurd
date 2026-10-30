@@ -21,8 +21,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   final TextEditingController _regPassController = TextEditingController();
   final TextEditingController _regConfirmPassController = TextEditingController();
   final TextEditingController _regNameController = TextEditingController();
-  final TextEditingController _regRoleController = TextEditingController(text: 'Perimeter Management Officer');
-  String _regClearance = 'LEVEL 3 • EVENT SECURITY OPERATOR';
+  final TextEditingController _regRoleController = TextEditingController(text: 'Crowd Safety & Operations Officer');
+  String _regClearance = 'LEVEL 3 • VENUE SAFETY OPERATOR';
 
   bool _isRegisterMode = false;
   bool _rememberMe = true;
@@ -149,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       username: username,
       password: password,
       name: name,
-      role: role.isNotEmpty ? role : 'Perimeter Management Officer',
+      role: role.isNotEmpty ? role : 'Crowd Safety & Operations Officer',
       clearanceLevel: _regClearance,
     );
 
@@ -265,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'CONFIDENTIAL EVENT HQ PERIMETER MONITORING',
+                          'EVENT HQ CROWD SAFETY & SITUATIONAL MONITORING',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             fontSize: 9.5,

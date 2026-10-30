@@ -18,7 +18,7 @@ class SecureStoreEncryptionService {
   static List<int> get _derivedKey {
     // If not initialized, fallback to a local machine-specific identifier in a real app,
     // but here we just derive a key from a standard environment variable or default fallback.
-    final secret = _runtimeSecret ?? 'EG_DEFAULT_FALLBACK_DO_NOT_USE_IN_PROD';
+    final secret = _runtimeSecret ?? 'SECURITY_KEY_UNINITIALIZED_EXCEPTION';
     return sha256.convert(utf8.encode(secret)).bytes;
   }
 

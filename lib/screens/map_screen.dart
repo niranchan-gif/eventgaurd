@@ -33,7 +33,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
   }
 
   void _showDispatchDialog(BuildContext context, MockState state) {
-    String selectedSector = 'Sector 01 (Command Post)';
+    String selectedSector = 'Zone A (Main Entrance Concourse)';
     String priority = 'Critical Alpha';
 
     showDialog(
@@ -52,7 +52,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   const Icon(Icons.send_rounded, color: AppTheme.uiAmber, size: 22),
                   const SizedBox(width: 10),
                   Text(
-                    'Dispatch Quick Reaction Team',
+                    'Dispatch Event Safety Stewards',
                     style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -64,11 +64,11 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Authorize immediate event ground patrol deployment to sector coordinates.',
+                      'Authorize immediate safety steward deployment to venue zone coordinates.',
                       style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 12),
                     ),
                     const SizedBox(height: 18),
-                    Text('Target Security Sector', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
+                    Text('Target Venue Zone', style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 12, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -84,9 +84,9 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                           dropdownColor: AppTheme.charcoalElevated,
                           style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
                           items: [
-                            'Sector 01 (Command Post)',
-                            'Sector 02 (East Basin)',
-                            'Sector 03 (West Ridge)',
+                            'Zone A (Main Entrance Concourse)',
+                            'Zone B (Central Arena & Grandstand)',
+                            'Zone C (Food Plaza & Exit Corridor)',
                           ].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                           onChanged: (v) {
                             if (v != null) setModalState(() => selectedSector = v);
@@ -111,9 +111,9 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                           dropdownColor: AppTheme.charcoalElevated,
                           style: GoogleFonts.inter(color: AppTheme.titaniumWhite, fontSize: 13),
                           items: [
-                            'Critical Alpha (Armed Breach Protocol)',
-                            'High Priority (Perimeter Reconnaissance)',
-                            'Routine Patrol (Perimeter Integrity Check)',
+                            'Critical Alpha (Crowd Surge & Bottleneck Protocol)',
+                            'High Priority (Crowd Density Influx Response)',
+                            'Routine Patrol (Egress & Corridors Safety Check)',
                           ].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
                           onChanged: (v) {
                             if (v != null) setModalState(() => priority = v);
@@ -141,7 +141,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                     Navigator.pop(dialogCtx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Quick Reaction Patrol dispatched to $selectedSector. Incident logged.'),
+                        content: Text('Safety Stewards dispatched to $selectedSector. Incident logged.'),
                         backgroundColor: AppTheme.charcoalElevated,
                       ),
                     );
@@ -226,9 +226,9 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                           ],
                         ),
                         const SizedBox(height: 12),
-                        _buildLegendItem(AppTheme.radarGreen, 'Sector 01 CAM-01 Sensor Node'),
-                        _buildLegendItem(AppTheme.titaniumWhite, 'Primary Perimeter Management Line'),
-                        _buildLegendItem(hasThreat ? AppTheme.alertRed : AppTheme.mutedSilver, hasThreat ? 'Active Incursion Signal Detected' : 'Perimeter Clear (No Breach)'),
+                        _buildLegendItem(AppTheme.radarGreen, 'Zone A CAM-01 Concourse Camera'),
+                        _buildLegendItem(AppTheme.titaniumWhite, 'Primary Venue Crowd Flow Corridor'),
+                        _buildLegendItem(hasThreat ? AppTheme.alertRed : AppTheme.mutedSilver, hasThreat ? 'Crowd Surge Signal Flagged' : 'Zone Nominal (Crowd Flow Safe)'),
                         _buildLegendItem(AppTheme.uiAmber, 'Active Radar Sweep Vector'),
                       ],
                     ),
@@ -252,7 +252,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'SECTOR TELEMETRY',
+                      'VENUE ZONE TELEMETRY',
                       style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.uiAmber, fontSize: 11, letterSpacing: 0.8),
                     ),
                     Container(
@@ -270,18 +270,18 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text('Sector 01 Event Zone', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.titaniumWhite)),
+                Text('Zone A Main Entrance', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.titaniumWhite)),
                 const SizedBox(height: 4),
-                Text('MGRS: 43R EN 2819 1485 • Laptop Post', style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11)),
+                Text('GATE 1-4 PLAZA • Cam 01 Node', style: GoogleFonts.inter(color: AppTheme.mutedSilver, fontSize: 11)),
                 const SizedBox(height: 20),
                 const Divider(color: AppTheme.hairlineBorder),
                 const SizedBox(height: 14),
                 _buildZoneDetail('Operational Sensor Inputs', '${state.cameras.where((c) => !c.isEmptySlot).length} Active Feed (${state.cameras.where((c) => c.isEmptySlot).length} Standby Slots)'),
-                _buildZoneDetail('Active Breach Signals', '$activeAlertCount Active Alerts', color: activeAlertCount > 0 ? AppTheme.alertRed : AppTheme.radarGreen),
+                _buildZoneDetail('Active Crowd Alerts', '$activeAlertCount Active Alerts', color: activeAlertCount > 0 ? AppTheme.alertRed : AppTheme.radarGreen),
                 _buildZoneDetail('Radar Pulse Sweep Rate', '3.5s Continuous Sweep'),
                 _buildZoneDetail('Sensor Latency', state.isBackendConnected ? '${(1000 / (state.cam1Fps > 0 ? state.cam1Fps : 30)).toStringAsFixed(0)}ms (Direct AI Link)' : 'Offline'),
-                _buildZoneDetail('Assigned Quick Reaction Team', 'Delta-9 Quick Reaction Unit'),
-                _buildZoneDetail('SECURITY LEVEL Status', state.defconStatus.split('•').first.trim(), color: state.defconColor),
+                _buildZoneDetail('Assigned Safety Stewards', 'Steward Team Alpha (Crowd Ops)'),
+                _buildZoneDetail('CROWD SAFETY STATUS', state.defconStatus.split('•').first.trim(), color: state.defconColor),
                 const Spacer(),
                 // Dispatch Button with smooth hover animation
                 MouseRegion(
@@ -315,7 +315,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                         onPressed: () => _showDispatchDialog(context, state),
                         icon: const Icon(Icons.send_rounded, size: 18, color: AppTheme.obsidianBlack),
                         label: Text(
-                          'DISPATCH RAPID PATROL',
+                          'DISPATCH EVENT STEWARDS',
                           style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 0.6),
                         ),
                       ),
@@ -395,7 +395,7 @@ class _EventRadarPainter extends CustomPainter {
       canvas.drawLine(Offset(0, i), Offset(size.width, i), gridPaint);
     }
 
-    // Border Fence Path
+    // Venue Safety Boundary Path
     final borderPaint = Paint()
       ..color = AppTheme.titaniumWhite.withValues(alpha: 0.7)
       ..strokeWidth = 2.0

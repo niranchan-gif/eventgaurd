@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/camera.dart';
@@ -41,12 +42,83 @@ class MockState extends ChangeNotifier {
   double cam2Fps = 0.0;
   String selectedDashboardCameraId = 'CAM-001';
   String cam2Source = '1';
-  String cam1DeviceName = 'Laptop Webcam';
-  String cam2DeviceName = 'Phone Recon Camera';
+  String cam1DeviceName = 'Main Entrance Camera';
+  String cam2DeviceName = 'Mobile Steward Camera';
   String activeAiMode = "all";
   Map<String, int> cam1Counts = {'person': 0, 'vehicle': 0, 'animal': 0, 'face': 0};
   Map<String, int> cam2Counts = {'person': 0, 'vehicle': 0, 'animal': 0, 'face': 0};
   bool intrusionDetected = false;
+
+  // Connected Field Staff
+  List<Map<String, dynamic>> connectedStaffList = [];
+
+  // Manual Demo Person Count Override State
+  bool isManualPersonOverride = false;
+  int manualPersonCount = 1;
+
+  void setManualPersonCount(int count) {
+    isManualPersonOverride = true;
+    manualPersonCount = count.clamp(0, 300);
+    cam1Counts['person'] = manualPersonCount;
+    _evaluateCrowdRiskFromPersonCount();
+    notifyListeners();
+  }
+
+  void incrementManualPersonCount([int step = 1]) {
+    final current = isManualPersonOverride ? manualPersonCount : (cam1Counts['person'] ?? 0);
+    setManualPersonCount(current + step);
+  }
+
+  void decrementManualPersonCount([int step = 1]) {
+    final current = isManualPersonOverride ? manualPersonCount : (cam1Counts['person'] ?? 0);
+    setManualPersonCount(math.max(0, current - step));
+  }
+
+  void resetManualPersonCountToLive() {
+    isManualPersonOverride = false;
+    _evaluateCrowdRiskFromPersonCount();
+    notifyListeners();
+  }
+
+  void _evaluateCrowdRiskFromPersonCount() {
+    final count = cam1Counts['person'] ?? 0;
+    if (count >= 20) {
+      intrusionDetected = true;
+      final now = DateTime.now();
+      if (!alerts.any((a) => a.title.contains('Surge') && now.difference(a.detectedAt).inSeconds < 12)) {
+        final altId = 'ALT-${now.millisecondsSinceEpoch.toString().substring(8)}';
+        alerts.insert(
+          0,
+          Alert(
+            id: altId,
+            title: 'CRITICAL: Crowd Surge Warning in Zone A',
+            severity: AlertSeverity.critical,
+            confidence: 96,
+            cameraId: 'CAM-001',
+            location: 'Zone A (Main Entrance)',
+            detectedAt: now,
+          ),
+        );
+        incidents.insert(
+          0,
+          Incident(
+            id: 'INC-${now.millisecondsSinceEpoch.toString().substring(8)}',
+            threatType: 'Crowd Surge & Congestion',
+            cameraId: 'CAM-001',
+            location: 'Zone A',
+            severity: IncidentSeverity.critical,
+            detectedAt: now,
+            assignedTo: 'Lead Steward',
+            confidence: 96,
+            notes: 'Manual demo crowd surge threshold ($count attendees) reached.',
+            status: IncidentStatus.investigating,
+          ),
+        );
+      }
+    } else {
+      intrusionDetected = false;
+    }
+  }
 
   void selectDashboardCamera(String id) {
     selectedDashboardCameraId = id;
@@ -74,7 +146,7 @@ class MockState extends ChangeNotifier {
   bool autoPatrolDispatch = true;
   bool biometricConfirmation = false;
   String languageProtocol = 'English (Event Nomenclature)';
-  String coordinatesStandard = 'WGS 84 / MGRS';
+  String coordinatesStandard = 'Venue Spatial Grid / GPS';
   String falseAlarmFilter = 'Aggressive (AI Multi-frame verification)';
 
   // Real-time detection activity history directly updated from CAM-01 feed
@@ -96,10 +168,282 @@ class MockState extends ChangeNotifier {
   int totalFacesDetected = 14;
   int totalBreachesDetected = 1;
 
+  // GRA (Grid-based Risk Analysis) Real-Time Telemetry Map
+  Map<String, Map<String, dynamic>> graGridData = {
+    'A1': {'risk_score': 0.0, 'severity': 'SAFE', 'people_count': 0},
+    'A2': {'risk_score': 0.0, 'severity': 'SAFE', 'people_count': 0},
+    'A3': {'risk_score': 0.0, 'severity': 'SAFE', 'people_count': 0},
+    'B1': {'risk_score': 0.0, 'severity': 'SAFE', 'people_count': 0},
+    'B2': {'risk_score': 0.0, 'severity': 'SAFE', 'people_count': 0},
+    'B3': {'risk_score': 0.0, 'severity': 'SAFE', 'people_count': 0},
+    'C1': {'risk_score': 0.0, 'severity': 'SAFE', 'people_count': 0},
+    'C2': {'risk_score': 0.0, 'severity': 'SAFE', 'people_count': 0},
+    'C3': {'risk_score': 0.0, 'severity': 'SAFE', 'people_count': 0},
+  };
+  String highestRiskZone = 'A1';
+  double highestRiskScore = 0.0;
+  String highestRiskSeverity = 'SAFE';
+
+  WebSocket? _hqWs;
+  bool isHqWsConnected = false;
+  Timer? _wsReconnectTimer;
+
   MockState() {
     _initLiveEvents();
     _startBackendPolling();
+    _connectHQWebSocket();
     BackendLauncher.ensureBackendRunning();
+  }
+
+  Future<void> _connectHQWebSocket() async {
+    _wsReconnectTimer?.cancel();
+    try {
+      _hqWs = await WebSocket.connect('ws://127.0.0.1:8765/hq').timeout(const Duration(seconds: 2));
+      isHqWsConnected = true;
+      notifyListeners();
+
+      _hqWs!.listen((message) {
+        try {
+          final data = json.decode(message.toString()) as Map<String, dynamic>;
+          _handleHQWebSocketMessage(data);
+        } catch (_) {}
+      }, onDone: () {
+        isHqWsConnected = false;
+        _scheduleWsReconnect();
+      }, onError: (_) {
+        isHqWsConnected = false;
+        _scheduleWsReconnect();
+      });
+    } catch (_) {
+      isHqWsConnected = false;
+      _scheduleWsReconnect();
+    }
+  }
+
+  void _scheduleWsReconnect() {
+    _wsReconnectTimer?.cancel();
+    _wsReconnectTimer = Timer(const Duration(seconds: 3), () {
+      _connectHQWebSocket();
+    });
+  }
+
+  void _handleHQWebSocketMessage(Map<String, dynamic> data) {
+    final type = data['type'] as String?;
+    final now = DateTime.now();
+
+    if (type == 'CROWD_RISK_ALERT') {
+      final zone = (data['zone'] as String?) ?? 'A1';
+      final severity = (data['severity'] as String?) ?? 'SAFE';
+      final riskScore = (data['risk_score'] as num?)?.toDouble() ?? 0.0;
+      final metrics = (data['metrics'] as Map<String, dynamic>?) ?? {};
+      final alertId = (data['alert_id'] as String?) ?? 'ALT-${now.millisecondsSinceEpoch}';
+
+      graGridData[zone] = {
+        'risk_score': riskScore,
+        'severity': severity,
+        'people_count': metrics['people_count'] ?? 0,
+        'density': metrics['density'] ?? 0,
+        'congestion': metrics['congestion'] ?? 0,
+        'growth': metrics['crowd_growth'] ?? 0,
+        'irregularity': metrics['movement_irregularity'] ?? 0,
+      };
+
+      double maxScore = -1.0;
+      String maxZone = zone;
+      String maxSev = severity;
+      for (final entry in graGridData.entries) {
+        final sc = (entry.value['risk_score'] as num?)?.toDouble() ?? 0.0;
+        if (sc > maxScore) {
+          maxScore = sc;
+          maxZone = entry.key;
+          maxSev = (entry.value['severity'] as String?) ?? 'SAFE';
+        }
+      }
+      highestRiskScore = maxScore;
+      highestRiskZone = maxZone;
+      highestRiskSeverity = maxSev;
+
+      if (severity == 'CRITICAL' || severity == 'HIGH_WARNING') {
+        alerts.insert(
+          0,
+          Alert(
+            id: alertId,
+            title: 'GRA: $severity Crowd Condition in Grid $zone',
+            severity: severity == 'CRITICAL' ? AlertSeverity.critical : AlertSeverity.high,
+            confidence: riskScore.round().clamp(1, 100),
+            cameraId: 'CAM-001',
+            location: 'Grid $zone (GRA Algorithm)',
+            detectedAt: now,
+          ),
+        );
+      }
+
+      if (severity == 'CRITICAL') {
+        incidents.insert(
+          0,
+          Incident(
+            id: 'INC-$alertId',
+            threatType: 'GRA Severe Crowd Congestion ($zone)',
+            cameraId: 'CAM-001',
+            location: 'Grid $zone',
+            severity: IncidentSeverity.critical,
+            detectedAt: now,
+            assignedTo: 'Patrol SECURITY-A',
+            confidence: riskScore.round().clamp(1, 100),
+            notes: 'GRA Algorithm: ${data["message"] ?? "Density spike detected."}. Metrics: Density ${metrics["density"]}%, Congestion ${metrics["congestion"]}%, Growth ${metrics["crowd_growth"]}%, Irregularity ${metrics["movement_irregularity"]}%. Automated emergency assignment dispatched.',
+            status: IncidentStatus.investigating,
+          ),
+        );
+      }
+
+      liveFeedEvents.insert(
+        0,
+        LiveFeedEvent(
+          id: 'EVT-GRA-${now.millisecondsSinceEpoch.toString().substring(8)}',
+          title: 'GRA Grid $zone: $severity (${riskScore.toStringAsFixed(1)})',
+          cameraId: 'CAM-001',
+          location: 'Grid $zone',
+          confidence: riskScore.round().clamp(1, 100),
+          timestamp: now,
+          badgeColor: severity == 'CRITICAL'
+              ? const Color(0xFFEF4444)
+              : (severity == 'HIGH_WARNING' ? const Color(0xFFF97316) : const Color(0xFFEAB308)),
+          icon: Icons.groups_rounded,
+        ),
+      );
+
+      if (liveFeedEvents.length > 25) liveFeedEvents.removeLast();
+      if (alerts.length > 30) alerts.removeLast();
+      if (incidents.length > 30) incidents.removeLast();
+
+      notifyListeners();
+    } else if (type == 'TASK_STATUS') {
+      final staffId = data['staffId'] ?? 'Staff';
+      final taskId = data['taskId'] ?? 'Task';
+      final status = data['status'] ?? '';
+      liveFeedEvents.insert(
+        0,
+        LiveFeedEvent(
+          id: 'EVT-STATUS-${now.millisecondsSinceEpoch.toString().substring(8)}',
+          title: 'Field Response: $staffId -> $taskId [$status]',
+          cameraId: 'FIELD-COMM',
+          location: 'Venue Zone',
+          confidence: 100,
+          timestamp: now,
+          badgeColor: const Color(0xFF3B82F6),
+          icon: Icons.assignment_turned_in,
+        ),
+      );
+      if (status == 'COMPLETED') {
+        final matchIdx = incidents.indexWhere((i) => i.id.contains(taskId.toString()));
+        if (matchIdx != -1) {
+          incidents[matchIdx].status = IncidentStatus.resolved;
+        }
+      }
+      notifyListeners();
+    } else if (type == 'ACK') {
+      final staffId = data['staffId'] ?? 'Staff';
+      final eventId = data['eventId'] ?? '';
+      liveFeedEvents.insert(
+        0,
+        LiveFeedEvent(
+          id: 'EVT-ACK-${now.millisecondsSinceEpoch.toString().substring(8)}',
+          title: 'Alert Acknowledged by $staffId ($eventId)',
+          cameraId: 'FIELD-COMM',
+          location: 'Venue Zone',
+          confidence: 100,
+          timestamp: now,
+          badgeColor: const Color(0xFF10B981),
+          icon: Icons.check_circle_outline,
+        ),
+      );
+      final matchIdx = alerts.indexWhere((a) => a.id == eventId);
+      if (matchIdx != -1) {
+        alerts[matchIdx].status = AlertStatus.acknowledged;
+      }
+      notifyListeners();
+    } else if (type == 'STAFF_ONLINE') {
+      final staffId = (data['staffId'] ?? 'STAFF-001').toString();
+      final teamId = (data['teamId'] ?? 'SECURITY-A').toString();
+      final zone = (data['zone'] ?? 'Zone A').toString();
+      final existingIdx = connectedStaffList.indexWhere((s) => s['staffId'] == staffId);
+      final staffData = {
+        'staffId': staffId,
+        'teamId': teamId,
+        'zone': zone,
+        'status': 'ONLINE',
+        'connectedAt': now,
+      };
+      if (existingIdx >= 0) {
+        connectedStaffList[existingIdx] = staffData;
+      } else {
+        connectedStaffList.add(staffData);
+      }
+      liveFeedEvents.insert(
+        0,
+        LiveFeedEvent(
+          id: 'EVT-STAFF-${now.millisecondsSinceEpoch.toString().substring(8)}',
+          title: 'Field Staff Enrolled: $staffId ($teamId)',
+          cameraId: 'HQ-QR-CONNECT',
+          location: zone,
+          confidence: 100,
+          timestamp: now,
+          badgeColor: const Color(0xFF10B981),
+          icon: Icons.qr_code_scanner_rounded,
+        ),
+      );
+      notifyListeners();
+    } else if (type == 'STAFF_OFFLINE') {
+      final staffId = data['staffId']?.toString();
+      connectedStaffList.removeWhere((s) => s['staffId'] == staffId);
+      notifyListeners();
+    } else if (type == 'STAFF_ROSTER') {
+      final roster = (data['roster'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      connectedStaffList = List<Map<String, dynamic>>.from(roster);
+      notifyListeners();
+    }
+  }
+
+  Future<bool> sendDeployCommand({
+    required String teamId,
+    String? staffId,
+    required String title,
+    required String description,
+    required String priority,
+    required String locationName,
+  }) async {
+    final payload = json.encode({
+      "type": "DEPLOY_STAFF",
+      "teamId": teamId,
+      "staffId": staffId ?? "",
+      "title": title,
+      "description": description,
+      "priority": priority,
+      "locationName": locationName,
+      "alarm": true,
+      "vibrate": true,
+    });
+
+    if (_hqWs != null && isHqWsConnected) {
+      _hqWs!.add(payload);
+      return true;
+    } else {
+      try {
+        final tempWs = await WebSocket.connect('ws://127.0.0.1:8765/hq').timeout(const Duration(seconds: 2));
+        tempWs.add(payload);
+        await Future.delayed(const Duration(milliseconds: 300));
+        await tempWs.close();
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+  }
+
+  void refreshStaffRoster() {
+    if (_hqWs != null && isHqWsConnected) {
+      _hqWs!.add(json.encode({"type": "GET_STAFF_ROSTER"}));
+    }
   }
 
   void _initLiveEvents() {
@@ -109,7 +453,7 @@ class MockState extends ChangeNotifier {
         id: 'EVT-INIT-1',
         title: 'Optical Stream Synchronized • CAM-01',
         cameraId: 'CAM-001',
-        location: 'Sector 01 (Laptop Cam)',
+        location: 'Zone A (Main Entrance)',
         confidence: 99,
         timestamp: now.subtract(const Duration(minutes: 2)),
         badgeColor: const Color(0xFF10B981),
@@ -117,9 +461,9 @@ class MockState extends ChangeNotifier {
       ),
       LiveFeedEvent(
         id: 'EVT-INIT-2',
-        title: 'YOLOv11 Perimeter Neural Engine Armed',
+        title: 'YOLOv11 Crowd Safety & GRA Engine Armed',
         cameraId: 'CAM-001',
-        location: 'Sector 01 (Laptop Cam)',
+        location: 'Zone A (Main Entrance)',
         confidence: 97,
         timestamp: now.subtract(const Duration(minutes: 1)),
         badgeColor: const Color(0xFFF59E0B),
@@ -182,15 +526,24 @@ class MockState extends ChangeNotifier {
         cam1Fps = (data['fps'] as num?)?.toDouble() ?? 0.0;
         liveBitrateKbps = isCameraOn ? (cam1Fps * 90.0 + 820.0).clamp(600.0, 3200.0) : 0.0;
         activeAiMode = (data['mode'] as String?) ?? activeAiMode;
-        intrusionDetected = (data['intrusion_detected'] as bool?) ?? false;
 
         if (data['counts'] is Map) {
+          final livePersons = (data['counts']['person'] as num?)?.toInt() ?? 0;
           cam1Counts = {
-            'person': (data['counts']['person'] as num?)?.toInt() ?? 0,
+            'person': isManualPersonOverride ? manualPersonCount : livePersons,
             'vehicle': (data['counts']['vehicle'] as num?)?.toInt() ?? 0,
             'animal': (data['counts']['animal'] as num?)?.toInt() ?? 0,
             'face': (data['counts']['face'] as num?)?.toInt() ?? 0,
           };
+        }
+
+        // Only flag intrusionDetected if manual override is >= 20, or if backend reports intrusion AND persons >= 10
+        if (isManualPersonOverride) {
+          intrusionDetected = manualPersonCount >= 20;
+        } else {
+          final rawIntrusion = (data['intrusion_detected'] as bool?) ?? false;
+          final persons = cam1Counts['person'] ?? 0;
+          intrusionDetected = rawIntrusion && persons >= 10;
         }
 
         // Real-time detection graph telemetry point
@@ -208,9 +561,9 @@ class MockState extends ChangeNotifier {
             0,
             LiveFeedEvent(
               id: 'EVT-${now.millisecondsSinceEpoch.toString().substring(8)}',
-              title: 'Human In-Frame Verified (${cam1Counts['person']!} active)',
+              title: 'Attendee In-Frame Verified (${cam1Counts['person']!} active)',
               cameraId: 'CAM-001',
-              location: 'Sector 01 (Laptop Cam)',
+              location: 'Zone A (Main Entrance)',
               confidence: 94,
               timestamp: now,
               badgeColor: const Color(0xFFF59E0B),
@@ -228,9 +581,9 @@ class MockState extends ChangeNotifier {
             0,
             LiveFeedEvent(
               id: 'EVT-${now.millisecondsSinceEpoch.toString().substring(8)}',
-              title: 'Vehicle In-Frame Tracked (${cam1Counts['vehicle']!} active)',
+              title: 'Venue Cart In-Frame Tracked (${cam1Counts['vehicle']!} active)',
               cameraId: 'CAM-001',
-              location: 'Sector 01 (Laptop Cam)',
+              location: 'Zone A (Main Entrance)',
               confidence: 89,
               timestamp: now,
               badgeColor: const Color(0xFFF4F5F7),
@@ -250,7 +603,7 @@ class MockState extends ChangeNotifier {
               id: 'EVT-${now.millisecondsSinceEpoch.toString().substring(8)}',
               title: 'Facial Biometric Match In-Frame',
               cameraId: 'CAM-001',
-              location: 'Sector 01 (Laptop Cam)',
+              location: 'Zone A (Main Entrance)',
               confidence: 96,
               timestamp: now,
               badgeColor: const Color(0xFF60A5FA),
@@ -268,9 +621,9 @@ class MockState extends ChangeNotifier {
               0,
               LiveFeedEvent(
                 id: 'EVT-${now.millisecondsSinceEpoch.toString().substring(8)}',
-                title: 'RESTRICTED PERIMETER INCIDENT BREACH',
+                title: 'CROWD SURGE CONGESTION DETECTED',
                 cameraId: 'CAM-001',
-                location: 'Sector 01 (Laptop Cam)',
+                location: 'Zone A (Main Entrance)',
                 confidence: 97,
                 timestamp: now,
                 badgeColor: const Color(0xFFEF4444),
@@ -307,7 +660,7 @@ class MockState extends ChangeNotifier {
           cam.status = isCameraOn ? CameraStatus.online : CameraStatus.offline;
           cam.lastActive = DateTime.now();
           final detectionText = isCameraOn
-              ? (data['current_detection'] as String? ?? 'Active Monitoring')
+              ? (data['current_detection'] as String? ?? 'Crowd Monitoring Active')
               : 'Camera Hardware Powered Off';
           if (cam.currentDetection != detectionText) {
             cam.currentDetection = detectionText;
@@ -315,7 +668,7 @@ class MockState extends ChangeNotifier {
           }
         }
 
-        // Parse CAM-002 (Phone / Mobile Recon Node) telemetry
+        // Parse CAM-002 (Phone / Mobile Steward Node) telemetry
         if (data['cameras'] is Map && data['cameras']['CAM-002'] is Map) {
           final c2 = data['cameras']['CAM-002'] as Map<String, dynamic>;
           cam2Fps = (c2['fps'] as num?)?.toDouble() ?? 0.0;
@@ -332,7 +685,7 @@ class MockState extends ChangeNotifier {
             final c2Status = c2['status'] as String? ?? 'standby';
             cameras[cam2Index].status = (c2Status == 'online') ? CameraStatus.online : CameraStatus.offline;
             cameras[cam2Index].lastActive = DateTime.now();
-            final c2Detection = c2['current_detection'] as String? ?? 'Awaiting Mobile Recon Link';
+            final c2Detection = c2['current_detection'] as String? ?? 'Awaiting Mobile Steward Link';
             if (cameras[cam2Index].currentDetection != c2Detection) {
               cameras[cam2Index].currentDetection = c2Detection;
               notifyNeeded = true;
@@ -341,7 +694,7 @@ class MockState extends ChangeNotifier {
               cam2Source = c2['source'].toString();
             }
             if (c2.containsKey('device_name')) {
-              final d2 = c2['device_name'] as String? ?? 'Phone Recon Camera';
+              final d2 = c2['device_name'] as String? ?? 'Mobile Steward Camera';
               if (cam2DeviceName != d2) {
                 cam2DeviceName = d2;
                 notifyNeeded = true;
@@ -350,7 +703,7 @@ class MockState extends ChangeNotifier {
           }
         }
 
-        // 1. Live Incident Breaches generated directly from CAM-01
+        // 1. Live Crowd Incidents generated directly from CAM-01
         if (intrusionDetected) {
           if (!alerts.any((a) => a.title.contains('Incident') && now.difference(a.detectedAt).inSeconds < 12)) {
             final altId = 'ALT-${now.millisecondsSinceEpoch.toString().substring(8)}';
@@ -358,11 +711,11 @@ class MockState extends ChangeNotifier {
               0,
               Alert(
                 id: altId,
-                title: 'CRITICAL: Perimeter Fence Incident in Sector 01',
+                title: 'CRITICAL: Crowd Surge Warning in Zone A',
                 severity: AlertSeverity.critical,
                 confidence: 96,
                 cameraId: 'CAM-001',
-                location: 'Sector 01 (Laptop Cam)',
+                location: 'Zone A (Main Entrance)',
                 detectedAt: now,
               ),
             );
@@ -370,14 +723,14 @@ class MockState extends ChangeNotifier {
               0,
               Incident(
                 id: 'INC-${now.millisecondsSinceEpoch.toString().substring(8)}',
-                threatType: 'Perimeter Incident Breach',
+                threatType: 'Crowd Surge & Congestion',
                 cameraId: 'CAM-001',
-                location: 'Sector 01',
+                location: 'Zone A',
                 severity: IncidentSeverity.critical,
                 detectedAt: now,
-                assignedTo: 'Active Operator',
+                assignedTo: 'Lead Steward',
                 confidence: 96,
-                notes: 'Automated AI restricted perimeter breach detected by CAM-01',
+                notes: 'Automated AI crowd congestion and surge threshold reached at Gate A Concourse.',
                 status: IncidentStatus.investigating,
               ),
             );
@@ -385,27 +738,7 @@ class MockState extends ChangeNotifier {
           }
         }
 
-        // 2. Real-time Human Detections from CAM-01
-        else if (cam1Counts['person']! > 0) {
-          if (!alerts.any((a) => a.title.contains('Person') && now.difference(a.detectedAt).inSeconds < 25)) {
-            final altId = 'ALT-${now.millisecondsSinceEpoch.toString().substring(8)}';
-            alerts.insert(
-              0,
-              Alert(
-                id: altId,
-                title: 'Unauthorized Person Tracked in Sector 01',
-                severity: AlertSeverity.high,
-                confidence: 91,
-                cameraId: 'CAM-001',
-                location: 'Sector 01 (Laptop Cam)',
-                detectedAt: now,
-              ),
-            );
-            notifyNeeded = true;
-          }
-        }
-
-        // 3. Real-time Vehicle Detections from CAM-01
+        // 3. Real-time Vehicle / Cart Detections from CAM-01
         else if (cam1Counts['vehicle']! > 0) {
           if (!alerts.any((a) => a.title.contains('Vehicle') && now.difference(a.detectedAt).inSeconds < 25)) {
             final altId = 'ALT-${now.millisecondsSinceEpoch.toString().substring(8)}';
@@ -413,11 +746,11 @@ class MockState extends ChangeNotifier {
               0,
               Alert(
                 id: altId,
-                title: 'Vehicle Detected in Sector 01',
+                title: 'Venue Cart / Utility Vehicle Tracked in Zone A',
                 severity: AlertSeverity.medium,
                 confidence: 85,
                 cameraId: 'CAM-001',
-                location: 'Sector 01 (Laptop Cam)',
+                location: 'Zone A (Main Entrance)',
                 detectedAt: now,
               ),
             );
@@ -547,31 +880,34 @@ class MockState extends ChangeNotifier {
   }
 
   String get defconStatus {
-    if (intrusionDetected) {
-      return 'SECURITY LEVEL 1 • INCIDENT BREACH DETECTED';
-    }
     final persons = cam1Counts['person'] ?? 0;
-    final vehicles = cam1Counts['vehicle'] ?? 0;
-    if (persons > 0 || vehicles > 0) {
-      return 'SECURITY LEVEL 3 • TARGET ACTIVITY IDENTIFIED';
+    if (intrusionDetected || persons >= 20) {
+      return 'CROWD SAFETY LEVEL 1 • CRITICAL SURGE DETECTED';
+    }
+    if (persons >= 8) {
+      return 'CROWD SAFETY LEVEL 2 • ACTIVE ATTENDEE INFLUX';
     }
     if (!isCameraOn) {
-      return 'STANDBY • CAM 01 HARDWARE MUTED';
+      return 'STANDBY • CAM 01 SENSOR MUTED';
     }
-    return 'SECURITY LEVEL 4 • NORMAL VIGILANCE';
+    if (persons > 0) {
+      return 'CROWD SAFETY LEVEL 4 • NORMAL FLOW ($persons ATTENDEE${persons > 1 ? "S" : ""} • SAFE)';
+    }
+    return 'CROWD SAFETY LEVEL 4 • NORMAL FLOW (SAFE)';
   }
 
   Color get defconColor {
-    if (intrusionDetected) return const Color(0xFFEF4444);
     final persons = cam1Counts['person'] ?? 0;
-    final vehicles = cam1Counts['vehicle'] ?? 0;
-    if (persons > 0 || vehicles > 0) return const Color(0xFFF59E0B);
+    if (intrusionDetected || persons >= 20) return const Color(0xFFEF4444);
+    if (persons >= 8) return const Color(0xFFF59E0B);
     if (!isCameraOn) return const Color(0xFF6B7280);
     return const Color(0xFF10B981);
   }
 
   @override
   void dispose() {
+    _wsReconnectTimer?.cancel();
+    _hqWs?.close();
     _pollTimer?.cancel();
     _telemetryClient.close(force: true);
     super.dispose();
@@ -581,9 +917,9 @@ class MockState extends ChangeNotifier {
   List<Camera> cameras = [
     Camera(
       id: 'CAM-001',
-      name: 'Laptop Webcam (CAM-01)',
-      location: 'Sector 01 Command Post',
-      zone: 'Sector 01',
+      name: 'Main Entrance Cam (CAM-01)',
+      location: 'Zone A Main Entrance Concourse',
+      zone: 'Zone A',
       status: CameraStatus.online,
       signal: 'Direct 100%',
       lastActive: DateTime.now(),
@@ -594,13 +930,13 @@ class MockState extends ChangeNotifier {
         'Face Detect': DetectionMode.active,
         'ANPR': DetectionMode.active,
       },
-      currentDetection: 'Active Monitoring • Lap Cam 01',
+      currentDetection: 'Active Monitoring • Main Entrance 01',
     ),
     Camera(
       id: 'CAM-002',
-      name: 'Mobile Recon Node (Phone Cam)',
-      location: 'Sector 02 Mobile Patrol',
-      zone: 'Sector 02',
+      name: 'Mobile Steward Feed (Phone Cam)',
+      location: 'Zone B Concourse Patrol',
+      zone: 'Zone B',
       status: CameraStatus.online,
       signal: 'Direct USB Link',
       lastActive: DateTime.now(),
@@ -611,13 +947,13 @@ class MockState extends ChangeNotifier {
         'Face Detect': DetectionMode.active,
         'ANPR': DetectionMode.active,
       },
-      currentDetection: 'Active Monitoring • Phone Cam 02',
+      currentDetection: 'Active Monitoring • Steward Cam 02',
     ),
     Camera(
       id: 'SLOT-03',
       name: 'Channel 03 [Empty]',
       location: 'No Physical Stream Assigned',
-      zone: 'Sector 03',
+      zone: 'Zone C',
       status: CameraStatus.offline,
       signal: 'Disconnected',
       lastActive: DateTime.now(),
@@ -629,7 +965,7 @@ class MockState extends ChangeNotifier {
       id: 'SLOT-04',
       name: 'Channel 04 [Empty]',
       location: 'No Physical Stream Assigned',
-      zone: 'Sector 04',
+      zone: 'Zone D',
       status: CameraStatus.offline,
       signal: 'Disconnected',
       lastActive: DateTime.now(),
@@ -641,7 +977,7 @@ class MockState extends ChangeNotifier {
       id: 'SLOT-05',
       name: 'Channel 05 [Empty]',
       location: 'No Physical Stream Assigned',
-      zone: 'Sector 05',
+      zone: 'Zone E',
       status: CameraStatus.offline,
       signal: 'Disconnected',
       lastActive: DateTime.now(),
@@ -653,7 +989,7 @@ class MockState extends ChangeNotifier {
       id: 'SLOT-06',
       name: 'Channel 06 [Empty]',
       location: 'No Physical Stream Assigned',
-      zone: 'Sector 06',
+      zone: 'Zone F',
       status: CameraStatus.offline,
       signal: 'Disconnected',
       lastActive: DateTime.now(),
@@ -672,13 +1008,13 @@ class MockState extends ChangeNotifier {
   List<Zone> get zones => [
     Zone(
       id: 'Z1',
-      name: 'Sector 01 - Laptop Webcam (CAM-01)',
+      name: 'Zone A - Main Entrance Concourse (CAM-01)',
       cameraCount: 1,
       activeAlerts: alerts.where((a) => a.status == AlertStatus.active).length,
       threatLevel: intrusionDetected ? 'CRITICAL' : (cam1Counts['person']! > 0 ? 'WARNING' : 'ACTIVE'),
     ),
-    Zone(id: 'Z2', name: 'Sector 02 - East Basin', cameraCount: 0, activeAlerts: 0, threatLevel: 'VACANT'),
-    Zone(id: 'Z3', name: 'Sector 03 - West Ridge', cameraCount: 0, activeAlerts: 0, threatLevel: 'VACANT'),
+    Zone(id: 'Z2', name: 'Zone B - Central Arena & Grandstand', cameraCount: 0, activeAlerts: 0, threatLevel: 'VACANT'),
+    Zone(id: 'Z3', name: 'Zone C - Concession & Food Plaza', cameraCount: 0, activeAlerts: 0, threatLevel: 'VACANT'),
   ];
 
   void addCamera(Camera cam) {
@@ -728,9 +1064,9 @@ class MockState extends ChangeNotifier {
         location: sector,
         severity: IncidentSeverity.critical,
         detectedAt: now,
-        assignedTo: currentUser?.name ?? 'Manager Alpha',
+        assignedTo: currentUser?.name ?? 'Head of Safety',
         confidence: 99,
-        notes: 'Rapid Event Patrol deployed to $sector by ${currentUser?.name ?? "Command"}. High-alert sector sweep underway.',
+        notes: 'Rapid Event Safety Stewards deployed to $sector by ${currentUser?.name ?? "Command"}. Crowd management underway.',
         status: IncidentStatus.investigating,
       ),
     );
@@ -739,7 +1075,7 @@ class MockState extends ChangeNotifier {
       0,
       Alert(
         id: altId,
-        title: 'PATROL DISPATCHED: Quick Reaction Team en route to $sector',
+        title: 'STEWARDS DISPATCHED: Safety Response Team en route to $sector',
         severity: AlertSeverity.critical,
         confidence: 99,
         cameraId: 'CAM-001',
@@ -764,7 +1100,7 @@ class MockState extends ChangeNotifier {
     }
 
     // Direct match for Chief Event Manager for instant offline authorized bypass
-    if ((trimmedUser.toUpperCase() == 'VANCE-01' || trimmedUser.toLowerCase() == 'admin' || trimmedUser.toLowerCase() == 'manager') &&
+    if ((trimmedUser.toUpperCase() == 'EVENT-01' || trimmedUser.toLowerCase() == 'admin' || trimmedUser.toLowerCase() == 'manager') &&
         (trimmedPass.isNotEmpty)) {
       currentUser = UserModel.defaultSupervisor;
       isAuthenticated = true;
@@ -786,7 +1122,7 @@ class MockState extends ChangeNotifier {
     }
   }
 
-  void instantSupervisorLogin() {
+  void loginAsSupervisor() {
     currentUser = UserModel.defaultSupervisor;
     isAuthenticated = true;
     notifyListeners();
